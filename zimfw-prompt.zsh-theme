@@ -29,6 +29,11 @@
 # 15 bright white
 #
 
+# redraw prompt upon window change event
+TRAPWINCH() {
+  zle && zle -R
+}
+
 _prompt_ratheesh_vimode() {
   case ${KEYMAP} in
     vicmd) print -n '%B%F{2}❮%F{3}❮%F{1}❮%b' ;;
