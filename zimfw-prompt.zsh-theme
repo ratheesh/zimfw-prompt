@@ -78,6 +78,9 @@ if (( ${+functions[git-info]} )); then
   autoload -Uz add-zsh-hook && add-zsh-hook precmd git-info
 fi
 
+# Clear to the end of the line before execution
+function preexec () { print -rn -- $terminfo[el]; }
+
 if (( $+commands[tput] ));then
   bold=$(tput bold)
   italic=$(tput sitm)
@@ -94,6 +97,6 @@ PS1='${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}%B%F{247}@%b%F{131}%m%F
 %(!. %B%F{1}#%f%b.)%(1j.%F{8}-%F{93}%j%F{8}-%f.)$(_prompt_ratheesh_vimode)%f '
 
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %B%F{1}#%b.)$(_prompt_ratheeshvimode)%f '
-RPS1='%(?::%B%F{9}⏎%f%b)${(e)git_info[status]}'
+RPS1='%(?::%B%F{9}⏎%f%b)${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${(e)git_info[status]}'
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
 SPROMPT='zsh: correct %F{2}%R%f to %F{2}%r%f [nyae]? '
