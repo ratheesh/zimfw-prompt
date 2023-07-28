@@ -36,8 +36,8 @@ TRAPWINCH() {
 
 _prompt_ratheesh_vimode() {
   case ${KEYMAP} in
-    vicmd) print -n '%B%F{2}❮%F{3}❮%F{1}❮%b' ;;
-    *) print -n '%B%F{1}❯%F{3}❯%F{2}❯%b' ;;
+    vicmd) print -n '%B%F{130}❮%F{250}❮%F{28}❮%b' ;;
+    *) print -n '%B%F{28}❯%F{250}❯%F{130}❯%b' ;;
   esac
 }
 
