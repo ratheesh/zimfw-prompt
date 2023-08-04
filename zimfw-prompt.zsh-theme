@@ -4,7 +4,8 @@
 #
 # A simplified fork of the original sorin theme from
 # Based on : https://github.com/zimfw/sorin
-# Async Reference://github.com/sorin-ionescu/prezto/blob/master/modules/prompt/functions/prompt_sorin_setup
+# Async Reference:http://github.com/sorin-ionescu/prezto/blob/master/modules/prompt/functions/prompt_sorin_setup
+# Reference: zshusers/zsh-autosuggestions
 #
 # Requires the `git-info` zmodule to be included in the .zimrc file.
 
@@ -28,11 +29,9 @@
 # 14 bright cyan
 # 15 bright white
 #
-
 ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
 fpath=($ZIM_HOME/modules/zimfw-prompt/functions $fpath[@])
-async.zsh
-# autoload -Uz async && async
+git_info.zsh
 
 function _prompt_ratheesh_vimode() {
   case ${KEYMAP} in
@@ -57,100 +56,87 @@ typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
 setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
 
-typeset -gA git_info
-if (( ${+functions[git-info]} )); then
-  # Set git-info parameters.
-  zstyle ':zim:git-info' verbose yes
-  zstyle ':zim:git-info:action' format ' %F{7}:%F{9}%s'
-  zstyle ':zim:git-info:ahead' format ' %F{250}%A%F{13}%%B⬆%%b'
-  zstyle ':zim:git-info:behind' format ' %F{250}%B%F{13}%%B⬇%%b'
-  zstyle ':zim:git-info:branch' format '%F{8}(%F{33}±%F{243}%{$italic%}%b%{$reset%}%F{8})%f'
-  zstyle ':zim:git-info:commit' format ' %F{3}%.7c'
-  zstyle ':zim:git-info:indexed' format ' %F{250}%i%F{2}%%B✚%%b'
-  zstyle ':zim:git-info:unindexed' format ' %F{250}%I%F{4}%%B✱%%b'
-  zstyle ':zim:git-info:position' format ' %F{13}%p'
-  zstyle ':zim:git-info:stashed' format ' %F{250}%S%F{6}%%BS%%b'
-  zstyle ':zim:git-info:untracked' format ' %F{250}%u%F{7}%%BU%%b'
-  zstyle ':zim:git-info:clean' format ' %F{28}✔ '
-  zstyle ':zim:git-info:dirty' format ' %%B%F{9}✘ %%b'
-  zstyle ':zim:git-info:keys' format \
-    'status' '%C%D$(coalesce "%b" "%c" "%p")%s%A%B%S%i%I%u%f'
+function _zsh_git_prompt_async_request() {
+    typeset -g _ZSH_GIT_PROMPT_ASYNC_FD _ZSH_GIT_PROMPT_ASYNC_PID
 
-  # Add hook for calling git-info before each command.
-  # autoload -Uz add-zsh-hook && add-zsh-hook precmd git-info
-fi
+    # If we've got a pending request, cancel it
+    if [[ -n "$_ZSH_GIT_PROMPT_ASYNC_FD" ]] && { true <&$_ZSH_GIT_PROMPT_ASYNC_FD } 2>/dev/null; then
 
-function prompt_gitinfo_async_callback() {
-  case $1 in
-    prompt_async_git)
-      _git_target=${3}
+        # Close the file descriptor and remove the handler
+        exec {_ZSH_GIT_PROMPT_ASYNC_FD}<&-
+        zle -F $_ZSH_GIT_PROMPT_ASYNC_FD
 
-      if [[ -z "$_git_target" ]]; then
-        # No git target detected, flush the git fragment and redisplay the prompt.
-        if [[ -n "$_prompt_git" ]]; then
-          _prompt_git=''
-          zle && zle reset-prompt
-          zle -R
+        # Zsh will make a new process group for the child process only if job
+        # control is enabled (MONITOR option)
+        if [[ -o MONITOR ]]; then
+            # Send the signal to the process group to kill any processes that may
+            # have been forked by the suggestion strategy
+            kill -TERM -$_ZSH_GIT_PROMPT_ASYNC_PID 2>/dev/null
+        else
+            # Kill just the child process since it wasn't placed in a new process
+            # group. If the suggestion strategy forked any child processes they may
+            # be orphaned and left behind.
+            kill -TERM $_ZSH_GIT_PROMPT_ASYNC_PID 2>/dev/null
         fi
-      else
-        # Git target detected, update the git fragment and redisplay the prompt.
-        _prompt_git="${_git_target}"
-        zle && zle reset-prompt
+    fi
+
+    # Fork a process to fetch the git status and open a pipe to read from it
+    exec {_ZSH_GIT_PROMPT_ASYNC_FD}< <(
+        # Tell parent process our pid
+        echo $sysparams[pid]
+        git_info
+    )
+
+    # There's a weird bug here where ^C stops working unless we force a fork
+    # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
+    command true
+
+    # Read the pid from the child process
+    read _ZSH_GIT_PROMPT_ASYNC_PID <&$_ZSH_GIT_PROMPT_ASYNC_FD
+
+    # When the fd is readable, call the response handler
+    zle -F "$_ZSH_GIT_PROMPT_ASYNC_FD" _zsh_git_prompt_callback
+}
+
+# Called when new data is ready to be read from the pipe
+# First arg will be fd ready for reading
+# Second arg will be passed in case of error
+function _zsh_git_prompt_callback() {
+    emulate -L zsh
+
+    if [[ -z "$2" || "$2" == "hup" ]]; then
+        # Read output from fd
+        prompt_info="$(cat <&$1)"
+
+        # if [[ "${old_prompt_info}" != "${prompt_info}" ]];then
+        zle reset-prompt
         zle -R
-      fi
-      ;;
+        old_prompt_info=${prompt_info}
+        # fi
 
-    "[async]")
-      if [[ $2 -eq 2 ]]; then
-          async_flush_jobs prompt_gitinfo
-          typeset -g prompt_async_init=0
-      fi
-      ;;
-  esac
-}
+        # Close the fd
+        exec {1}<&-
+    fi
 
-function prompt_async_git {
-  cd -q "$1"
-  if (( $+functions[git-info] )); then
-    git-info
-    print ${(e)git_info[status]}
-  fi
-}
+    # Always remove the handler
+    zle -F "$1"
 
-function prompt_async_tasks()
-{
-  if (( !${prompt_async_init:-0} )); then
-    async_start_worker prompt_gitinfo -n
-    async_register_callback prompt_gitinfo prompt_gitinfo_async_callback
-    typeset -g prompt_async_init=1
-  fi
-
-  # Kill the old process of slow commands if it is still running.
-  async_flush_jobs prompt_gitinfo
-
-  # Compute slow commands in the background.
-  async_job prompt_gitinfo prompt_async_git "$PWD"
+    # Unset global FD variable to prevent closing user created FDs in the precmd hook
+    unset _ZSH_GIT_PROMPT_ASYNC_FD
 }
 
 function prompt_precmd() {
-  setopt LOCAL_OPTIONS
-  unsetopt XTRACE KSH_ARRAYS
+    setopt noxtrace noksharrays localoptions
 
-  if (( $+functions[git-dir] )); then
-    local new_git_root="$(git-dir 2> /dev/null)"
-    [[ -n $new_git_root ]] && _prompt_git="%F{8}(%B%F{33}±%b%F{239}%{$italic%}$(git symbolic-ref -q --short HEAD 2>/dev/null)%{$reset%}%F{8})%f%B%F{33} …… %f%b"
-    if [[ $new_git_root != $_cur_git_root ]]; then
-      _prompt_git=''
-      _cur_git_root=$new_git_root
+    if (( $+functions[git-dir] )); then
+        local new_git_root="$(git-dir 2> /dev/null)"
+        [[ -n $new_git_root ]] && prompt_info="%F{129}«%B%F{11}±%b%F{239}%{$italic%}$(git symbolic-ref -q --short HEAD 2>/dev/null)%{$reset%}%F{129}»%f%B%F{33}…… %f%b"
+        if [[ $new_git_root != $_ratheesh_cur_git_root ]];then
+          prompt_info=''
+          _ratheesh_cur_git_root=$new_git_root
+        fi
     fi
-  fi
-
- # Run python info (this should be fast and not require any async)
-  if (( $+functions[python-info] )); then
-    python-info
-  fi
-
-  prompt_async_tasks
+    _zsh_git_prompt_async_request
 }
 
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
@@ -175,7 +161,7 @@ PS1='${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}%B%F{247}@%b%F{131}%m%F
 %(!. %B%F{1}#%f%b.)%(1j.%F{8}-%F{93}%j%F{8}-%f.)$(_prompt_ratheesh_vimode)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{9}⏎%f%b) ${VIRTUAL_ENV:+"%F{8}(%{$italic%}%B%F{63}venv%b%{$reset%}%F{196}:%f%F{179}${VIRTUAL_ENV:t}%f%F{8})%f"}${_prompt_git}'
+RPS1='%(?::%B%F{9}⏎%f%b) ${VIRTUAL_ENV:+"%F{8}(%{$italic%}%B%F{63}venv%b%{$reset%}%F{196}:%f%F{179}${VIRTUAL_ENV:t}%f%F{8})%f"}${prompt_info}'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
