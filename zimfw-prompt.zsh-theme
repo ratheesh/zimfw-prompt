@@ -33,10 +33,28 @@ ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
 fpath=($ZIM_HOME/modules/zimfw-prompt/functions $fpath[@])
 git_info.zsh
 
-function _prompt_ratheesh_vimode() {
+function _prompt_chars() {
   case ${KEYMAP} in
     vicmd) print -n '%B%F{166}❮%F{250}❮%F{28}❮%b' ;;
     *) print -n '%B%F{28}❯%F{250}❯%F{166}❯%b' ;;
+  esac
+}
+
+function _prompt_mode() {
+  case ${KEYMAP} in
+    vicmd)
+      print -n '%B%F{8}    --NORMAL--%f%b'
+      ;;
+    main|viins)
+      print -n '%B%F{8}    --INSERT--%f%b'
+      ;;
+    vivis)
+      print -n '%B%F{8}    --VISUAL--%f%b'
+      ;;
+    vivli)
+      print -n '%B%F{8}    --V-LINE--%f%b'
+      ;;
+    *) print -n "UNKNOWN"
   esac
 }
 
@@ -153,12 +171,14 @@ else
   italic=''
   reset=''
 fi
+terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %B%F{1}#%b.)$(_prompt_ratheeshvimode)%f '
-PS1='${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}%B%F{247}@%b%F{131}%m%F{60}⌡%B%F{162}~%f%b"}\
+PS1='%{$terminfo_down_sc$(_prompt_mode)$reset$terminfo[rc]%}\
+${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}%B%F{247}@%b%F{131}%m%F{60}⌡%B%F{162}~%f%b"}\
 %F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%B%F{63\}/%b%{$italic%\}%F{173\}}//\~/%B⌂%b}%b%{$reset%}%F{60}⌡%f%b\
-%(!. %B%F{1}#%f%b.)%(1j.%F{8}-%F{93}%j%F{8}-%f.)$(_prompt_ratheesh_vimode)%f '
+%(!. %B%F{1}#%f%b.)%(1j.%F{8}-%F{93}%j%F{8}-%f.)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
 RPS1='%(?::%B%F{9}⏎%f%b) ${VIRTUAL_ENV:+"%F{8}(%{$italic%}%B%F{63}venv%b%{$reset%}%F{196}:%f%F{179}${VIRTUAL_ENV:t}%f%F{8})%f"}${prompt_info}'
