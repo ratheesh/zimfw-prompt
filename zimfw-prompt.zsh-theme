@@ -148,11 +148,11 @@ function prompt_precmd() {
 
     if (( $+functions[git-dir] )); then
         local new_git_root="$(git-dir 2> /dev/null)"
-        [[ -n $new_git_root ]] && prompt_info="%F{129}«%B%F{11}±%b%F{239}%{$italic%}$(git symbolic-ref -q --short HEAD 2>/dev/null)%{$reset%}%F{129}»%f%B%F{33}…… %f%b"
         if [[ $new_git_root != $_ratheesh_cur_git_root ]];then
           prompt_info=''
           _ratheesh_cur_git_root=$new_git_root
         fi
+        [[ -n $new_git_root ]] && prompt_info="%F{129}«%B%F{11}±%b%F{239}%{$italic%}$(git symbolic-ref -q --short HEAD 2>/dev/null)%{$reset%}%F{129}»%f%B%F{33}…… %f%b"
     fi
     _zsh_git_prompt_async_request
 }
