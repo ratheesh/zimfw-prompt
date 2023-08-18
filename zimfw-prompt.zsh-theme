@@ -29,9 +29,9 @@
 # 14 bright cyan
 # 15 bright white
 #
-ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
-fpath=($ZIM_HOME/modules/zimfw-prompt/functions $fpath[@])
-git_info.zsh
+#
+
+git_info
 
 function _prompt_chars() {
   case ${KEYMAP} in
