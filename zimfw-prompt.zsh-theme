@@ -152,7 +152,7 @@ function prompt_precmd() {
           prompt_info=''
           _ratheesh_cur_git_root=$new_git_root
         fi
-        [[ -n $new_git_root ]] && prompt_info="%F{129}«%B%F{11}±%b%F{239}%{$italic%}$(git symbolic-ref -q --short HEAD 2>/dev/null)%{$reset%}%F{129}»%f %B%F{103} %f%b"
+        [[ -n $new_git_root ]] && prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}$(git symbolic-ref -q --short HEAD 2>/dev/null)%{$reset%}%F{129}»%f %B%F{103} %f%b"
     fi
     _zsh_git_prompt_async_request
 }
@@ -181,7 +181,7 @@ ${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}%B%F{247}@%b%F{131}%m%F{60}�
 %(!. %B%F{1}#%f%b.)%(1j.%F{8}-%F{93}%j%F{8}-%f.)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{9}⏎%f%b) ${VIRTUAL_ENV:+"%F{8}(%{$italic%}%B%F{63}venv%b%{$reset%}%F{196}:%f%F{179}${VIRTUAL_ENV:t}%f%F{8})%f"}${prompt_info}'
+RPS1='%(?::%B%F{9}󱞦 %f%b) ${VIRTUAL_ENV:+"%F{8}(%{$italic%}%B%F{63}venv%b%{$reset%}%F{196}:%f%F{179}${VIRTUAL_ENV:t}%f%F{8})%f"}${prompt_info}'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
