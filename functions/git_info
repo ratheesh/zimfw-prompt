@@ -135,7 +135,7 @@ function git_info() {
     fi
 
     if [[ -n $branch_name ]] && \
-     branch=("%B%F{129}«%B%F{248}󰘬%f%b%{$italic%}%F{241}${branch_name}%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{129}»%f%b")
+     branch=("%B%F{129}«%B%F{27}±%f%b%{$italic%}%F{241}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{129}»%f%b")
     if [[ -z "${branch_name//}" ]]; then
         pos="$(git describe --contains --all HEAD 2> /dev/null)"
         [[ -n $git_dir ]] && position="%B%F{8}ǁ%b%F{196}%F{7}${pos}%B%F{8}ǁ%f%b"

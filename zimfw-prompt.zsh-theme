@@ -152,7 +152,7 @@ function prompt_precmd() {
           prompt_info=''
           _ratheesh_cur_git_root=$new_git_root
         fi
-        [[ -n $new_git_root ]] && prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}$(git symbolic-ref -q --short HEAD 2>/dev/null)%{$reset%}%F{129}»%f %B%F{103} %f%b"
+        [[ -n $new_git_root ]] && prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
     fi
     _zsh_git_prompt_async_request
 }
