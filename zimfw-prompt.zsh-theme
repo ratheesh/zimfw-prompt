@@ -33,10 +33,11 @@
 
 git_info
 
+# ❰ ❱ ❮ ❯
 function _prompt_chars() {
   case ${KEYMAP} in
-    vicmd) print -n '%B%F{166}❮%F{250}❮%F{28}❮%b' ;;
-    *) print -n '%B%F{28}❯%F{250}❯%F{166}❯%b' ;;
+    vicmd) print -n '%B%F{166}❰%F{250}❰%F{28}❰%b' ;;
+    *) print -n '%B%F{28}❱%F{250}❱%F{166}❱%b' ;;
   esac
 }
 
