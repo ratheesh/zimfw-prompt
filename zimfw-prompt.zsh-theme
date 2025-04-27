@@ -79,6 +79,13 @@ typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
 setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
 
+zstyle ':zim:duration-info' threshold 2.0
+zstyle ':zim:duration-info' format '%F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
+
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec duration-info-preexec
+add-zsh-hook precmd duration-info-precmd
+
 function _zsh_git_prompt_async_request() {
     typeset -g _ZSH_GIT_PROMPT_ASYNC_FD _ZSH_GIT_PROMPT_ASYNC_PID
 
@@ -186,7 +193,7 @@ PS1='%{$terminfo_down_sc$(_prompt_mode)$reset$terminfo[rc]%}\
 %(!. %B%F{1}#%f%b.)$(_prompt_dockerinfo)%(?::%B%F{161}•%f%b)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{9}󱞦 %f%b) ${VIRTUAL_ENV:+"%F{8}(%{$italic%}%B%F{63}venv%b%{$reset%}%F{196}:%f%F{179}${VIRTUAL_ENV:t}%f%F{8})%f"}${prompt_info} '
+RPS1='%(?::%B%F{9}󱞦 %f%b)${duration_info} ${VIRTUAL_ENV:+"%F{8}(%{$italic%}%B%F{63}venv%b%{$reset%}%F{196}:%f%F{179}${VIRTUAL_ENV:t}%f%F{8})%f"}${prompt_info} '
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
