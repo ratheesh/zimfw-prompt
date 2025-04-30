@@ -5,7 +5,6 @@
 # A simplified fork of the original sorin theme from
 # Based on : https://github.com/zimfw/sorin
 # Async Reference:http://github.com/sorin-ionescu/prezto/blob/master/modules/prompt/functions/prompt_sorin_setup
-# Reference: zshusers/zsh-autosuggestions
 #
 # Requires the `git-info` zmodule to be included in the .zimrc file.
 
@@ -30,6 +29,8 @@
 # 15 bright white
 #
 #
+
+autoload -Uz async && async
 
 git_info
 
@@ -65,7 +66,7 @@ function _prompt_ratheesh_keymap_select() {
 }
 if autoload -Uz is-at-least && is-at-least 5.3; then
   autoload -Uz add-zle-hook-widget && \
-      add-zle-hook-widget -Uz keymap-select _prompt_ratheesh_keymap_select
+    add-zle-hook-widget -Uz keymap-select _prompt_ratheesh_keymap_select
 else
   zle -N zle-keymap-select _prompt_ratheesh_keymap_select
 fi
@@ -86,87 +87,63 @@ autoload -Uz add-zsh-hook
 add-zsh-hook preexec duration-info-preexec
 add-zsh-hook precmd duration-info-precmd
 
-function _zsh_git_prompt_async_request() {
-    typeset -g _ZSH_GIT_PROMPT_ASYNC_FD _ZSH_GIT_PROMPT_ASYNC_PID
 
-    # If we've got a pending request, cancel it
-    if [[ -n "$_ZSH_GIT_PROMPT_ASYNC_FD" ]] && { true <&$_ZSH_GIT_PROMPT_ASYNC_FD } 2>/dev/null; then
+function prompt_git_async_tasks() {
+  if (( !${prompt_async_init:-0} )); then
+    async_start_worker prompt_git -n
+    async_register_callback prompt_git prompt_git_async_callback
+    typeset -g prompt_git_async_init=1
+  fi
 
-        # Close the file descriptor and remove the handler
-        exec {_ZSH_GIT_PROMPT_ASYNC_FD}<&-
-        zle -F $_ZSH_GIT_PROMPT_ASYNC_FD
+  # Kill the old process of slow commands if it is still running.
+  async_flush_jobs prompt_gitt
 
-        # Zsh will make a new process group for the child process only if job
-        # control is enabled (MONITOR option)
-        if [[ -o MONITOR ]]; then
-            # Send the signal to the process group to kill any processes that may
-            # have been forked by the suggestion strategy
-            kill -TERM -$_ZSH_GIT_PROMPT_ASYNC_PID 2>/dev/null
-        else
-            # Kill just the child process since it wasn't placed in a new process
-            # group. If the suggestion strategy forked any child processes they may
-            # be orphaned and left behind.
-            kill -TERM $_ZSH_GIT_PROMPT_ASYNC_PID 2>/dev/null
-        fi
-    fi
+  # Compute slow commands in the background.
+  async_job prompt_git prompt_async_git "$PWD"
+}
 
-    # Fork a process to fetch the git status and open a pipe to read from it
-    exec {_ZSH_GIT_PROMPT_ASYNC_FD}< <(
-        # Tell parent process our pid
-        echo $sysparams[pid]
-        git_info
-    )
-
-    # There's a weird bug here where ^C stops working unless we force a fork
-    # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
-    command true
-
-    # Read the pid from the child process
-    read _ZSH_GIT_PROMPT_ASYNC_PID <&$_ZSH_GIT_PROMPT_ASYNC_FD
-
-    # When the fd is readable, call the response handler
-    zle -F "$_ZSH_GIT_PROMPT_ASYNC_FD" _zsh_git_prompt_callback
+function prompt_async_git {
+  cd -q "$1"
+  if (( $+functions[git_info] )); then
+    git_info
+  fi
 }
 
 # Called when new data is ready to be read from the pipe
 # First arg will be fd ready for reading
 # Second arg will be passed in case of error
-function _zsh_git_prompt_callback() {
-    emulate -L zsh
+function prompt_git_async_callback() {
+  emulate -L zsh
+  case $1 in
+    prompt_async_git)
+      prompt_info=$3
+      zle reset-prompt
+      zle -R
+      old_prompt_info=${prompt_info}
+      ;;
 
-    if [[ -z "$2" || "$2" == "hup" ]]; then
-        # Read output from fd
-        prompt_info="$(cat <&$1)"
-
-        # if [[ "${old_prompt_info}" != "${prompt_info}" ]];then
-        zle reset-prompt
-        zle -R
-        old_prompt_info=${prompt_info}
-        # fi
-
-        # Close the fd
-        exec {1}<&-
-    fi
-
-    # Always remove the handler
-    zle -F "$1"
-
-    # Unset global FD variable to prevent closing user created FDs in the precmd hook
-    unset _ZSH_GIT_PROMPT_ASYNC_FD
+    "[async]")
+      # Code is 1 for corrupted worker output and 2 for dead worker.
+      if [[ $2 -eq 2 ]]; then
+        # Our worker died unexpectedly.
+        typeset -g prompt_prezto_async_init=0
+      fi
+      ;;
+  esac
 }
 
 function prompt_precmd() {
-    setopt noxtrace noksharrays localoptions
+  setopt noxtrace noksharrays localoptions
 
-    if (( $+functions[git-dir] )); then
-        local new_git_root="$(git-dir 2> /dev/null)"
-        if [[ $new_git_root != $_ratheesh_cur_git_root ]];then
-          prompt_info=''
-          _ratheesh_cur_git_root=$new_git_root
-        fi
-        [[ -n $new_git_root ]] && prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
+  if (( $+functions[git-dir] )); then
+    local new_git_root="$(git-dir 2> /dev/null)"
+    if [[ $new_git_root != $_ratheesh_cur_git_root ]];then
+      prompt_info=''
+      _ratheesh_cur_git_root=$new_git_root
     fi
-    _zsh_git_prompt_async_request
+    [[ -n $new_git_root ]] && prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
+  fi
+  prompt_git_async_tasks
 }
 
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
