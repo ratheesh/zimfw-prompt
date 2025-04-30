@@ -168,6 +168,7 @@ function git_info() {
 
     if [[ -n $git_dir ]];then
       (( dirty > 0 )) && git_status+=("%B%F{9}✘%f%b") || git_status+=("%B%F{27}✔%f%b")
+      (( ahead > 0 && behind > 0 )) && git_status+=("%B%F{9}󰃻%f%b")
     fi
 
     git_status+=($(_git-action))
