@@ -131,14 +131,14 @@ function git_info() {
     # check if the current commit is at a tag point
     local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
     if [[ -n $tag_at_current_commit ]]; then
-        tag_at_current_commit="%F{60}(%b%{$italic%}%F{178}%{$reset%}%B%F{198}:%f%b%F{66}${tag_at_current_commit}%F{60})%f%b"
+        tag_at_current_commit="%{$reset%}%F{60}(%b%{$italic%}%F{178}%{$reset%}%B%F{198}:%f%b%F{66}${tag_at_current_commit}%F{60})%f%b"
     fi
 
     if [[ -n $branch_name ]] && \
      branch=("%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b")
     if [[ -z "${branch_name//}" ]]; then
         pos="$(git describe --contains --all HEAD 2> /dev/null)"
-        [[ -n $git_dir ]] && position="%B%F{8}ǁ%b%F{196}%F{7}${pos}%B%F{8}ǁ%f%b"
+        [[ -n $git_dir ]] && position="%B%F{8}ǁ%b%F{196} %F{5}%{$italic%}${pos}%{$reset%}%B%F{8}ǁ%f%b"
     fi
 
     [[ -n $git_dir ]] && [[ -z "${branch_name//}" && -z "${pos//}" ]] && commit=" %B%F{8}ǁ%F{196}%F{7}${current_commit_hash}%B%F{8}ǁ%f%b"
