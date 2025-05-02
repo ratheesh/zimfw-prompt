@@ -138,7 +138,7 @@ function prompt_precmd() {
   if (( $+functions[git-dir] )); then
     local new_git_root="$(git-dir 2> /dev/null)"
     if [[ $new_git_root != $_ratheesh_cur_git_root ]];then
-      prompt_info=''
+      prompt_info=' '
       _ratheesh_cur_git_root=$new_git_root
     fi
     [[ -n $new_git_root ]] && prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
