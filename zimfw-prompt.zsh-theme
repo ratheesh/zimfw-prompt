@@ -170,7 +170,7 @@ PS1='%{$terminfo_down_sc$(_prompt_mode)$reset$terminfo[rc]%}\
 %F{173\}}//\~/%B⌂%b}%b%{$reset%}%F{60}⌡%f%b%(!. %B%F{1}#%f%b.)%(?::%B%F{161}•%f%b)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{9}󱞦%f%b)${duration_info}${VIRTUAL_ENV:+"%F{8}(%{$italic%}%B%F{63}venv%b%{$reset%}%F{196}:%f%F{179}${VIRTUAL_ENV:t}%f%F{8})%f"} ${prompt_info}$(_prompt_dockerinfo)'
+RPS1='%(?::%B%F{9}󱞦%f%b)${duration_info}${VIRTUAL_ENV:+"%F{8}(%B%F{63} %b%F{196}:%f%{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"} ${prompt_info}$(_prompt_dockerinfo)'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 

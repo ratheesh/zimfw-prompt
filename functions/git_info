@@ -156,7 +156,7 @@ function git_info() {
     while IFS=$'\n' read line; do
         # Count added, deleted, modified, renamed, unmerged, untracked, dirty.
         # T (type change) is undocumented, see http://git.io/FnpMGw.
-        # For a table of scenarii, see http://i.imgur.com/2YLu1.png.
+        # For a table of scenario, see http://i.imgur.com/2YLu1.png.
         [[ "$line" == ([ACDMT][\ MT]|[ACMT]D)\ * ]] && (( added++ ))
         [[ "$line" == [\ ACMRT]D\ * ]] && (( deleted++ ))
         [[ "$line" == ?[MT]\ * ]] && (( modified++ ))
@@ -177,15 +177,15 @@ function git_info() {
     git_status+=($(coalesce $branch $position $commit))
 
     local -i stashed=$(command git stash list 2>/dev/null | wc -l)
-    (( stashed > 0 )) && git_status+=("%F{7}${stashed}%B%F{63}S%f%b")
-    (( ahead > 0 )) && git_status+=("%F{7}${ahead}%B%F{34}%f%b")
-    (( behind > 0 )) && git_status+=("%F{7}${behind}%B%F{198}%f%b")
+    (( stashed > 0 )) && git_status+=("%F{7}${stashed}%B%F{63}$%f%b")
+    (( ahead > 0 )) && git_status+=("%F{7}${ahead}%B%F{34}%f%b")
+    (( behind > 0 )) && git_status+=("%F{7}${behind}%B%F{198}%f%b")
     (( added > 0 )) && git_status+=("%F{7}${added}%B%F{2}󱇬%f%b")
     (( deleted > 0 )) && git_status+=("%F{7}${deleted}%B%F{1}%f%b")
     (( modified > 0 )) && git_status+=("%F{7}${modified}%F{202}✱%f%b")
     (( renamed > 0 )) && git_status+=("%F{7}${renamed}%B%F{54} %f%b")
     (( unmerged > 0 )) && git_status+=("%F{7}${unmerged}%B%F{1} %f%b")
-    (( untracked > 0 )) && git_status+=("%F{7}${untracked}%B%F{8}U%f%b")
+    (( untracked > 0 )) && git_status+=("%F{7}${untracked}%B%F{8}??%f%b")
 
     print "$git_status"
 }
