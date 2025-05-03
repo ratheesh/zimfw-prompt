@@ -52,7 +52,7 @@ function _git-action {
     do
         if [[ -f ${action_dir} ]]; then
             local rebase_interactive_formatted
-            rebase_interactive_formatted='rebase-interactive'
+            rebase_interactive_formatted='rebase-i'
             print ${rebase_interactive_formatted}
             return 0
         fi
