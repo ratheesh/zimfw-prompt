@@ -96,7 +96,7 @@ function prompt_git_async_tasks() {
   fi
 
   # Kill the old process of slow commands if it is still running.
-  async_flush_jobs prompt_gitt
+  async_flush_jobs prompt_git
 
   # Compute slow commands in the background.
   async_job prompt_git prompt_async_git "$PWD"
