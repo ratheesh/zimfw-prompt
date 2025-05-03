@@ -89,6 +89,8 @@ add-zsh-hook precmd duration-info-precmd
 
 
 function prompt_git_async_tasks() {
+  emulate -L zsh
+
   if (( !${prompt_async_init:-0} )); then
     async_start_worker prompt_git -n
     async_register_callback prompt_git prompt_git_async_callback
@@ -103,6 +105,7 @@ function prompt_git_async_tasks() {
 }
 
 function prompt_async_git {
+  emulate -L zsh
   cd -q "$1"
   if (( $+functions[git_info] )); then
     git_info
@@ -114,6 +117,7 @@ function prompt_async_git {
 # Second arg will be passed in case of error
 function prompt_git_async_callback() {
   emulate -L zsh
+
   case $1 in
     prompt_async_git)
       prompt_info=$3
@@ -133,6 +137,7 @@ function prompt_git_async_callback() {
 }
 
 function prompt_precmd() {
+  emulate -L zsh
   setopt noxtrace noksharrays localoptions
 
   if (( $+functions[git-dir] )); then
