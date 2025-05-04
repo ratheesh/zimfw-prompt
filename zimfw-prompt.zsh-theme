@@ -81,7 +81,7 @@ setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
 
 zstyle ':zim:duration-info' threshold 2.0
-zstyle ':zim:duration-info' format '%F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
+zstyle ':zim:duration-info' format ' %F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
 
 autoload -Uz add-zsh-hook
 add-zsh-hook preexec duration-info-preexec
@@ -175,7 +175,7 @@ PS1='%{$terminfo_down_sc$(_prompt_mode)$reset$terminfo[rc]%}\
 %F{173\}}//\~/%B⌂%b}%b%{$reset%}%F{60}⌡%f%b%(!. %B%F{1}#%f%b.)%(?::%B%F{161}•%f%b)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{9}󱞦%f%b)${duration_info}${VIRTUAL_ENV:+"%F{8}(%B%F{63} %b%F{196}:%f%{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"} ${prompt_info}$(_prompt_dockerinfo)'
+RPS1='%(?::%B%F{9}󱞦%f%b)${duration_info}${VIRTUAL_ENV:+"%F{8} (%B%F{63} %b%{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo) '
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
