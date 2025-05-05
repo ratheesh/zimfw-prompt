@@ -60,15 +60,15 @@ function _prompt_mode() {
   esac
 }
 
-function _prompt_ratheesh_keymap_select() {
+function _prompt_keymap_select() {
   zle reset-prompt
   zle -R
 }
 if autoload -Uz is-at-least && is-at-least 5.3; then
   autoload -Uz add-zle-hook-widget && \
-    add-zle-hook-widget -Uz keymap-select _prompt_ratheesh_keymap_select
+    add-zle-hook-widget -Uz keymap-select _prompt_keymap_select
 else
-  zle -N zle-keymap-select _prompt_ratheesh_keymap_select
+  zle -N zle-keymap-select _prompt_keymap_select
 fi
 
 function _prompt_dockerinfo() {
@@ -142,9 +142,9 @@ function prompt_precmd() {
 
   if (( $+functions[git-dir] )); then
     local new_git_root="$(git-dir 2> /dev/null)"
-    if [[ $new_git_root != $_ratheesh_cur_git_root ]];then
+    if [[ $new_git_root != $_cur_git_root ]];then
       prompt_info=' '
-      _ratheesh_cur_git_root=$new_git_root
+      _cur_git_root=$new_git_root
     fi
     [[ -n $new_git_root ]] && prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
   fi
