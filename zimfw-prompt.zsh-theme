@@ -73,7 +73,7 @@ else
 fi
 
 function _prompt_dockerinfo() {
-  [[ -f /.dockerenv ]] && print -n "%B%F{11} %f%b"
+  [[ -f /.dockerenv ]] && print -n "%B%F{11}%f%b"
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
@@ -82,7 +82,7 @@ setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
 
 zstyle ':zim:duration-info' threshold 2.0
-zstyle ':zim:duration-info' format ' %F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
+zstyle ':zim:duration-info' format '%F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
 
 autoload -Uz add-zsh-hook
 add-zsh-hook preexec duration-info-preexec
@@ -143,13 +143,14 @@ function prompt_precmd() {
 
   if (( $+functions[git-dir] )); then
     local new_git_root="$(git-dir 2> /dev/null)"
-    if [[ $new_git_root != $_cur_git_root ]];then
-      prompt_info=' '
-      _cur_git_root=$new_git_root
+    if [[ -n $new_git_root ]];then
+      [[ $new_git_root != $_cur_git_root ]] && _cur_git_root=$new_git_root
+      prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
+      prompt_git_async_tasks
+    else
+      unset prompt_info
     fi
-    [[ -n $new_git_root ]] && prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
   fi
-  prompt_git_async_tasks
 }
 
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
@@ -176,7 +177,7 @@ PS1='%{$terminfo_down_sc$(_prompt_mode)$reset$terminfo[rc]%}\
 %F{173\}}//\~/%B⌂%b}%b%{$reset%}%F{60}⌡%f%b%(!. %B%F{1}#%f%b.)%(?::%B%F{161}•%f%b)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{9}󱞦%f%b)${duration_info}${VIRTUAL_ENV:+"%F{8} (%B%F{63} %b%{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo) '
+RPS1='%(?::%B%F{9}󱞦 %f%b)${duration_info}${VIRTUAL_ENV:+"%F{8}(%B%F{63} %b%{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo)'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 

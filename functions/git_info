@@ -187,6 +187,6 @@ function git_info() {
     (( unmerged > 0 )) && git_status+=("%F{7}${unmerged}%B%F{1} %f%b")
     (( untracked > 0 )) && git_status+=("%F{7}${untracked}%B%F{8}??%f%b")
 
-    print " $git_status"
+    print "$git_status "
 }
 # End of File
