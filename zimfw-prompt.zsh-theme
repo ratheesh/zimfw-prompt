@@ -1,12 +1,13 @@
 # vim:et sts=2 sw=2 ft=zsh
 #
-# A Custom theme that displays relevant, contextual information.
+# Copyright (c) 2025 Ratheesh<ratheeshreddy@gmail.com>. All Rights Reserved.
+#
+# My Custom theme that displays relevant, and contextual information.
 #
 # A simplified fork of the original sorin theme from
 # Based on : https://github.com/zimfw/sorin
 # Async Reference:http://github.com/sorin-ionescu/prezto/blob/master/modules/prompt/functions/prompt_sorin_setup
 #
-# Requires the `git-info` zmodule to be included in the .zimrc file.
 
 #
 # 16 Terminal Colors
