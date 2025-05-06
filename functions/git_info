@@ -178,8 +178,8 @@ function git_info() {
 
     local -i stashed=$(command git stash list 2>/dev/null | wc -l)
     (( stashed > 0 )) && git_status+=("%F{7}${stashed}%B%F{63}$%f%b")
-    (( ahead > 0 )) && git_status+=("%F{7}${ahead}%B%F{34}%f%b")
-    (( behind > 0 )) && git_status+=("%F{7}${behind}%B%F{198}%f%b")
+    (( ahead > 0 )) && git_status+=("%F{7}${ahead}%B%F{34}󰜷%f%b")
+    (( behind > 0 )) && git_status+=("%F{7}${behind}%B%F{198}󰜮%f%b")
     (( added > 0 )) && git_status+=("%F{7}${added}%B%F{2}󱇬%f%b")
     (( deleted > 0 )) && git_status+=("%F{7}${deleted}%B%F{1}%f%b")
     (( modified > 0 )) && git_status+=("%F{7}${modified}%F{202}✱%f%b")
