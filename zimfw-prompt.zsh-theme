@@ -73,7 +73,7 @@ else
 fi
 
 function _prompt_dockerinfo() {
-  [[ -f /.dockerenv ]] && print -n "%B%F{11}󰡨%f%b"
+  [[ -f /.dockerenv ]] && print -n "%B%F{11}%f%b"
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
@@ -146,7 +146,7 @@ function prompt_precmd() {
     if [[ -n $new_git_root ]];then
       [[ $new_git_root != $_cur_git_root ]] && _cur_git_root=$new_git_root
       # prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
-      prompt_info="%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b %B%F{129}󰁪 %f%b"
+      prompt_info="%B%F{129}󰓦 %f%b%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b"
       prompt_git_async_tasks
     else
       unset prompt_info
@@ -175,10 +175,10 @@ terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 PS1='%{$terminfo_down_sc$(_prompt_mode)$reset$terminfo[rc]%}\
 %(1j.%B%F{1}[%b%B%F{3}%j%F{1}]%f%b.)${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
 %B%F{247}@%b%F{131}%m%F{60}⌡%B%F{162}~%f%b"}%F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%B%F{63\}/%b%{$italic%\}\
-%F{173\}}//\~/%B⌂%b}%b%{$reset%}%F{60}⌡%f%b%(!. %B%F{1}#%f%b.)%(?::%B%F{161}•%f%b)$(_prompt_chars)%f '
+%F{173\}}//\~/%B⌂%b}%b%{$reset%}%F{60}⌡%f%b%(!. %B%F{1}#%f%b.)%(?::%B%F{161}󰧞%f%b)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{9}󱞦 %f%b)${duration_info}${VIRTUAL_ENV:+"%F{8}(%B%F{63} %b%{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo)'
+RPS1='%(?::%B%F{9}󱞦 %f%b)${duration_info}${VIRTUAL_ENV:+"%F{8}(%B%F{198}󰌠 %b%{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo)'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
