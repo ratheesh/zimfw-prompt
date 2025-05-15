@@ -38,24 +38,24 @@ git_info
 # ❰ ❱ ❮ ❯
 function _prompt_chars() {
   case ${KEYMAP} in
-    vicmd) print -n '%B%F{166}❮%F{250}❮%F{28}❮%b' ;;
-    *) print -n '%B%F{28}❯%F{250}❯%F{166}❯%b' ;;
+    vicmd) print -n '%F{166}❮%F{250}❮%F{28}❮' ;;
+    *) print -n '%F{28}❯%F{250}❯%F{166}❯' ;;
   esac
 }
 
 function _prompt_mode() {
   case ${KEYMAP} in
     vicmd)
-      print -n '%B%F{8}    --NORMAL--%f%b'
+      print -n '%F{8}    --NORMAL--%f'
       ;;
     main|viins)
-      print -n '%B%F{8}    --INSERT--%f%b'
+      print -n '%F{8}    --INSERT--%f'
       ;;
     vivis)
-      print -n '%B%F{8}    --VISUAL--%f%b'
+      print -n '%F{8}    --VISUAL--%f'
       ;;
     vivli)
-      print -n '%B%F{8}    --V-LINE--%f%b'
+      print -n '%F{8}    --V-LINE--%f'
       ;;
     *) # print -n "UNKNOWN -> $KEYMAP"
   esac
@@ -73,7 +73,7 @@ else
 fi
 
 function _prompt_dockerinfo() {
-  [[ -f /.dockerenv ]] && print -n "%B%F{11}%f%b"
+  [[ -f /.dockerenv ]] && print -n "%F{11}%f"
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
@@ -145,8 +145,8 @@ function prompt_precmd() {
     local new_git_root="$(git-dir 2> /dev/null)"
     if [[ -n $new_git_root ]];then
       [[ $new_git_root != $_cur_git_root ]] && _cur_git_root=$new_git_root
-      # prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
-      prompt_info="%B%F{129}󰓦 %f%b%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b"
+      # prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %F{103} %f"
+      prompt_info="%F{129}󰓦 %f%F{105}«%F{172} %f%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{105}»%f"
       prompt_git_async_tasks
     else
       unset prompt_info
@@ -171,14 +171,14 @@ fi
 terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 
 # Define prompts.
-# PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %B%F{1}#%b.)$(_prompt_ratheeshvimode)%f '
+# PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
 PS1='%{$terminfo_down_sc$(_prompt_mode)$reset$terminfo[rc]%}\
-%(1j.%B%F{1}[%b%B%F{3}%j%F{1}]%f%b.)${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
-%B%F{247}@%b%F{131}%m%F{60}⌡%B%F{162}~%f%b"}%F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%B%F{63\}/%b%{$italic%\}\
-%F{173\}}//\~/%B⌂%b}%b%{$reset%}%F{60}⌡%f%b%(!. %B%F{1}#%f%b.)%(?::%B%F{161}󰧞%f%b)$(_prompt_chars)%f '
+${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
+%F{247}@%F{131}%m%F{60}⌡%F{162}~%f"}%F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%F{63\}/%{$italic%\}\
+%F{173\}}//\~/⌂}%{$reset%}%F{60}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)%(?::%F{161}󰧞%f)$(_prompt_chars)%f '
 
-# RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %B%F{6}V%b"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{9}󱞦 %f%b)${duration_info}${VIRTUAL_ENV:+"%F{8}(%B%F{198}󰌠 %b%{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo)'
+# RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
+RPS1='%(?::%F{9}󱞦 %f)${duration_info}${VIRTUAL_ENV:+"%F{8}(%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo)'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
