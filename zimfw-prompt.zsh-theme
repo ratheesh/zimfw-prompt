@@ -174,7 +174,8 @@ function prompt_precmd() {
     if [[ -n $new_git_root ]];then
       [[ $new_git_root != $_cur_git_root ]] && _cur_git_root=$new_git_root
       # prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
-      prompt_info="%B%F{129}󰓦 %f%b%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b"
+      # prompt_info="%B%F{129}󰓦 %f%b%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b"
+      prompt_info=$(transient_prompt_info)
       prompt_git_async_tasks
     else
       unset prompt_info
