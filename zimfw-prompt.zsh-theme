@@ -72,7 +72,7 @@ else
 fi
 
 function _prompt_dockerinfo() {
-  [[ -f /.dockerenv ]] && print -n "%B%F{11}%f%b"
+  [[ -f /.dockerenv ]] && print -n "%B%F{11} %f%b"
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
