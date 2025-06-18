@@ -158,7 +158,10 @@ function prompt_precmd() {
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
 
 # Clear to the end of the line before execution
-function preexec () { print -rn -- $terminfo[el]; }
+function preexec () {
+  OSC133_START="\e]133;A\e\\"
+  printf "$OSC133_START%s" "$terminfo[el]";
+}
 
 if (( $+commands[tput] ));then
   bold=$(tput bold)
