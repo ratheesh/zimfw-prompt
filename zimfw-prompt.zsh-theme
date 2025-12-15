@@ -46,16 +46,16 @@ function _prompt_chars() {
 function _prompt_mode() {
   case ${KEYMAP} in
     vicmd)
-      print -n '%F{8}    --NORMAL--%f'
+      print -n '%F{8}    -󰧞%F{6}Normal%F{8}󰧞-%f'
       ;;
     main|viins)
-      print -n '%F{8}    --INSERT--%f'
+      print -n '%F{8}    -󰧞%F{4}Insert%F{8}󰧞-%f'
       ;;
     vivis)
-      print -n '%F{8}    --VISUAL--%f'
+      print -n '%F{8}    -󰧞%F{3}Visual%F{8}󰧞-%f'
       ;;
     vivli)
-      print -n '%F{8}    --V-LINE--%f'
+      print -n '%F{8}    -󰧞%F{3}V-Line%F{8}󰧞-%f'
       ;;
     *) # print -n "UNKNOWN -> $KEYMAP"
   esac
@@ -176,7 +176,7 @@ terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
-PS1='%{$terminfo_down_sc$(_prompt_mode)$reset$terminfo[rc]%}\
+PS1='%{$terminfo_down_sc%{$italic%}$(_prompt_mode)%{$reset%}$reset$terminfo[rc]%}\
 ${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
 %F{247}@%F{131}%m%F{60}⌡%F{162}~%f"}%F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%F{63\}/%{$italic%\}\
 %F{173\}}//\~/⌂}%{$reset%}%F{60}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)%(?::%F{161}󰧞%f)$(_prompt_chars)%f '
