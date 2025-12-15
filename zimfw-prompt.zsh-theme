@@ -182,7 +182,7 @@ ${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
 %F{173\}}//\~/⌂}%{$reset%}%F{60}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)%(?::%F{161}󰧞%f)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%F{9}󱞦 %f)${duration_info}${VIRTUAL_ENV:+"%F{8}(%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo)'
+RPS1='%(?::%F{9}󱞦 %F{8}»%F{91}%?%F{8}« %f)${duration_info}${VIRTUAL_ENV:+"%F{8}(%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo)'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
