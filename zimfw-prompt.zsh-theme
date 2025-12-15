@@ -107,6 +107,9 @@ function prompt_git_async_tasks() {
 
 function prompt_async_git {
   emulate -L zsh
+  if (( $+functions[cd] )); then
+    unset -f cd
+  fi
   cd -q "$1"
   if (( $+functions[git_info] )); then
     git_info
