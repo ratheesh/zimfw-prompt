@@ -134,7 +134,7 @@ function prompt_git_async_callback() {
       # Code is 1 for corrupted worker output and 2 for dead worker.
       if [[ $2 -eq 2 ]]; then
         # Our worker died unexpectedly.
-        typeset -g prompt_prezto_async_init=0
+        typeset -g prompt_git_async_init=0
       fi
       ;;
   esac
