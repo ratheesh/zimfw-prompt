@@ -31,8 +31,8 @@ function _git-action {
         if [[ -d ${action_dir} ]]; then
             local apply_formatted
             local rebase_formatted
-            apply_formatted='apply'
-            rebase_formatted='>R>rebase'
+            apply_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}%F{1}apply%{$reset%}%F{8}🙦 "
+            rebase_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}%F{1}>R>rebase%{$reset%}%F{8}🙦 "
 
             if [[ -f "${action_dir}/rebasing" ]]; then
                 print ${rebase_formatted}
@@ -52,8 +52,8 @@ function _git-action {
     do
         if [[ -f ${action_dir} ]]; then
             local rebase_interactive_formatted
-            rebase_interactive_formatted='rebase-i'
-            print ${rebase_interactive_formatted}
+            rebase_interactive_formatted="%F{8}🙤 %F{172} %{$italic%}%F{1}>R>rebase-i%{$reset%}%F{8}🙦 "
+            print "${rebase_interactive_formatted}"
             return 0
         fi
     done
@@ -64,7 +64,7 @@ function _git-action {
     do
         if [[ -d ${action_dir} ]]; then
             local rebase_merge_formatted
-            rebase_merge_formatted='rebase-merge'
+            rebase_merge_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}rebase-merge%{$reset%}%F{8}🙦 "
             print ${rebase_merge_formatted}
             return 0
         fi
@@ -72,7 +72,7 @@ function _git-action {
 
     if [[ -f "${git_dir}/MERGE_HEAD" ]]; then
         local merge_formatted
-        merge_formatted='merge'
+        merge_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}merge%{$reset%}%F{8}🙦 "
         print ${merge_formatted}
         return 0
     fi
@@ -80,11 +80,11 @@ function _git-action {
     if [[ -f "${git_dir}/CHERRY_PICK_HEAD" ]]; then
         if [[ -d "${git_dir}/sequencer" ]]; then
             local cherry_pick_sequence_formatted
-            cherry_pick_sequence_formatted='cherry-pick-sequence'
+            cherry_pick_sequence_formatted="%F{8}🙤 %F{172} %F{1} %{$italic%}cherry-pick-sequence%{$reset%}%F{8}🙦 "
             print ${cherry_pick_sequence_formatted}
         else
             local cherry_pick_formatted
-            cherry_pick_formatted='cherry-pick'
+            cherry_pick_formatted="%F{8}🙤 %F{172} %F{1} %{$italic%}cherry-pick%{$reset%}%F{8}🙦 "
             print ${cherry_pick_formatted}
         fi
 
@@ -93,7 +93,7 @@ function _git-action {
 
     if [[ -f "${git_dir}/BISECT_LOG" ]]; then
         local bisect_formatted
-        bisect_formatted='<B>bisect'
+        bisect_formatted="%F{8}🙤 %F{172} %F{1}<B>bisect%F{8}🙦 "
         print ${bisect_formatted}
         return 0
     fi
@@ -110,9 +110,16 @@ function coalesce {
     return 1
 }
 
-function git_branch_name() {
+function get_left_gitprompt_info() {
     local branch_name="$(command git symbolic-ref -q --short HEAD 2> /dev/null)"
-    [[ -n $branch_name ]] && print "$branch_name"
+    local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
+    if [[ -n $tag_at_current_commit ]]; then
+        tag_at_current_commit="%{$reset%}%F{60}(%b%{$italic%}%F{178}%{$reset%}%B%F{198}:%f%b%F{66}${tag_at_current_commit}%F{60})%f%b"
+    fi
+    [[ -n $branch_name ]] &&
+    branch=("%F{105}«%F{172} %f%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{105}»%f")
+    # print "$(branch)$(_git-action)"
+    print "$(_git-action)"
 }
 
 function git_info() {

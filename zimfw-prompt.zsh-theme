@@ -38,24 +38,28 @@ git_info
 # ❰ ❱ ❮ ❯
 function _prompt_chars() {
   case ${KEYMAP} in
-    vicmd) print -n '%F{166}❮%F{250}❮%F{28}❮' ;;
-    *) print -n '%F{28}❯%F{250}❯%F{166}❯' ;;
+    vicmd) print -n '%F{166}❮%F{250}❮%F{28}❮';;
+    *) print -n '%F{28}❯%F{250}❯%F{166}❯';;
   esac
+}
+
+function _left_prompt_info() {
+  print -n "   %(?:%F{27}󰧞%f:%F{161}󰧞%f) $(_prompt_mode) $(get_left_gitprompt_info)$(_prompt_dockerinfo)"
 }
 
 function _prompt_mode() {
   case ${KEYMAP} in
     vicmd)
-      print -n '%F{8}    -󰧞%F{6}Normal%F{8}󰧞-%f'
+      print -n '%F{8}🙟 %F{95}%BNORMAL%b%F{8}🙝 %f'
       ;;
     main|viins)
-      print -n '%F{8}    -󰧞%F{4}Insert%F{8}󰧞-%f'
+      print -n '%F{8}🙟 %F{61}%BINSERT%b%F{8}🙝 %f'
       ;;
     vivis)
-      print -n '%F{8}    -󰧞%F{3}Visual%F{8}󰧞-%f'
+      print -n '%F{8}🙟 %F{126}%BVISUAL%b%F{8}🙝 %f'
       ;;
     vivli)
-      print -n '%F{8}    -󰧞%F{3}V-Line%F{8}󰧞-%f'
+      print -n '%F{8}🙟 %F{126}%BV-LIN%bE%F{8}🙝 %f'
       ;;
     *) # print -n "UNKNOWN -> $KEYMAP"
   esac
@@ -73,7 +77,7 @@ else
 fi
 
 function _prompt_dockerinfo() {
-  [[ -f /.dockerenv ]] && print -n "%F{11}%f"
+  [[ -f /.dockerenv ]] && print -n "%F{11} %f"
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
@@ -179,13 +183,13 @@ terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
-PS1='%{$terminfo_down_sc%{$italic%}$(_prompt_mode)%{$reset%}$reset$terminfo[rc]%}\
-${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
+PS1='%{$terminfo_down_sc$(_left_prompt_info)${VIRTUAL_ENV:+"%F{8}(%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"} \
+%{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
 %F{247}@%F{131}%m%F{60}⌡%F{162}~%f"}%F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%F{63\}/%{$italic%\}\
-%F{173\}}//\~/⌂}%{$reset%}%F{60}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)%(?::%F{161}󰧞%f)$(_prompt_chars)%f '
+%F{173\}}//\~/⌂}%{$reset%}%F{60}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f '
 
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%F{9}󱞦 %F{8}»%F{91}%?%F{8}« %f)${duration_info}${VIRTUAL_ENV:+"%F{8}(%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"}${prompt_info}$(_prompt_dockerinfo)'
+RPS1='%(?::%F{9}󱞦 %F{8}»%F{91}%?%F{8}« %f)${duration_info}${prompt_info}'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
