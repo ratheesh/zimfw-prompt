@@ -114,7 +114,7 @@ function prompt_async_git {
   if (( $+functions[cd] )); then
     unset -f cd
   fi
-  cd -q "$1"
+  builtin cd -q "$1"
   if (( $+functions[git_info] )); then
     git_info
   fi
