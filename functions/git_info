@@ -185,7 +185,7 @@ function git_info() {
     git_status+=($(coalesce $branch $position $commit))
 
     local -i stashed=$(command git stash list 2>/dev/null | wc -l)
-    (( stashed > 0 )) && git_status+=("%F{7}${stashed}%F{63}%f")
+    (( stashed > 0 )) && git_status+=("%F{7}${stashed}%F{63}%B%f%b")
     (( ahead > 0 )) && git_status+=("%F{7}${ahead}%F{34}󰁞%f")
     (( behind > 0 )) && git_status+=("%F{7}${behind}%F{198}󰁆%f")
     (( added > 0 )) && git_status+=("%F{7}${added}%F{2}󱇬%f")
