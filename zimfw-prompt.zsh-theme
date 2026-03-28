@@ -33,7 +33,8 @@
 
 autoload -Uz async && async
 
-git_info
+# Load helper functions (get_left_gitprompt_info, transient_prompt_info, etc.)
+source ${0:A:h}/functions/git_info
 
 # ❰ ❱ ❮ ❯
 function _prompt_chars() {
@@ -44,7 +45,7 @@ function _prompt_chars() {
 }
 
 function _left_prompt_info() {
-  print -n "   %(?:%F{27}%f:%F{161}%f) $(_prompt_mode) $(get_left_gitprompt_info)$(_prompt_dockerinfo)"
+  print -n "   %(?:%F{27}%f:%F{161}%f) $(_prompt_mode) ${_left_git_info}$(_prompt_dockerinfo)"
 }
 
 function _prompt_mode() {
@@ -81,6 +82,7 @@ function _prompt_dockerinfo() {
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
+typeset -g _left_git_info=''
 
 setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
@@ -96,7 +98,7 @@ add-zsh-hook precmd duration-info-precmd
 function prompt_git_async_tasks() {
   emulate -L zsh
 
-  if (( !${prompt_async_init:-0} )); then
+  if (( !${prompt_git_async_init:-0} )); then
     async_start_worker prompt_git -n
     async_register_callback prompt_git prompt_git_async_callback
     typeset -g prompt_git_async_init=1
@@ -131,7 +133,6 @@ function prompt_git_async_callback() {
       prompt_info=$3
       zle reset-prompt
       zle -R
-      old_prompt_info=${prompt_info}
       ;;
 
     "[async]")
@@ -152,12 +153,12 @@ function prompt_precmd() {
     local new_git_root="$(git-dir 2> /dev/null)"
     if [[ -n $new_git_root ]];then
       [[ $new_git_root != $_cur_git_root ]] && _cur_git_root=$new_git_root
-      # prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
-      # prompt_info="%B%F{129}󰓦 %f%b%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b"
+      _left_git_info=$(get_left_gitprompt_info)
       prompt_info=$(transient_prompt_info)
       prompt_git_async_tasks
     else
       unset prompt_info
+      _left_git_info=''
     fi
   fi
 }
@@ -165,10 +166,11 @@ function prompt_precmd() {
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
 
 # Clear to the end of the line before execution
-function preexec () {
+function _prompt_preexec() {
   OSC133_START="\e]133;A\e\\"
   printf "$OSC133_START%s" "$terminfo[el]";
 }
+add-zsh-hook preexec _prompt_preexec
 
 if (( $+commands[tput] ));then
   bold=$(tput bold)
