@@ -33,7 +33,8 @@
 
 autoload -Uz async && async
 
-git_info
+# Load helper functions (get_left_gitprompt_info, transient_prompt_info, etc.)
+source ${0:A:h}/functions/git_info
 
 # ❰ ❱ ❮ ❯
 function _prompt_chars() {
@@ -44,7 +45,7 @@ function _prompt_chars() {
 }
 
 function _left_prompt_info() {
-  print -n "   %(?:%F{27}%f:%F{161}%f) $(_prompt_mode) $(get_left_gitprompt_info)$(_prompt_dockerinfo)"
+  print -n "   %(?:%F{27}%f:%F{161}%f) $(_prompt_mode) ${_left_git_info}$(_prompt_dockerinfo)"
 }
 
 function _prompt_mode() {
@@ -81,6 +82,7 @@ function _prompt_dockerinfo() {
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
+typeset -g _left_git_info=''
 
 setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
@@ -89,14 +91,16 @@ zstyle ':zim:duration-info' threshold 2.0
 zstyle ':zim:duration-info' format '%F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
 
 autoload -Uz add-zsh-hook
-add-zsh-hook preexec duration-info-preexec
-add-zsh-hook precmd duration-info-precmd
+function _prompt_duration_preexec() { (( $+functions[duration-info-preexec] )) && duration-info-preexec "$@" }
+function _prompt_duration_precmd() { (( $+functions[duration-info-precmd] )) && duration-info-precmd }
+add-zsh-hook preexec _prompt_duration_preexec
+add-zsh-hook precmd _prompt_duration_precmd
 
 
 function prompt_git_async_tasks() {
   emulate -L zsh
 
-  if (( !${prompt_async_init:-0} )); then
+  if (( !${prompt_git_async_init:-0} )); then
     async_start_worker prompt_git -n
     async_register_callback prompt_git prompt_git_async_callback
     typeset -g prompt_git_async_init=1
@@ -115,9 +119,7 @@ function prompt_async_git {
     unset -f cd
   fi
   builtin cd -q "$1"
-  if (( $+functions[git_info] )); then
-    git_info
-  fi
+  git_info
 }
 
 # Called when new data is ready to be read from the pipe
@@ -131,7 +133,6 @@ function prompt_git_async_callback() {
       prompt_info=$3
       zle reset-prompt
       zle -R
-      old_prompt_info=${prompt_info}
       ;;
 
     "[async]")
@@ -152,12 +153,12 @@ function prompt_precmd() {
     local new_git_root="$(git-dir 2> /dev/null)"
     if [[ -n $new_git_root ]];then
       [[ $new_git_root != $_cur_git_root ]] && _cur_git_root=$new_git_root
-      # prompt_info="%F{129}«%F{63}󱓍 %F{239}%{$italic%}%25>…>$(git symbolic-ref -q --short HEAD 2>/dev/null)%>>%{$reset%}%F{129}»%f %B%F{103} %f%b"
-      # prompt_info="%B%F{129}󰓦 %f%b%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b"
+      _left_git_info=$(get_left_gitprompt_info)
       prompt_info=$(transient_prompt_info)
       prompt_git_async_tasks
     else
       unset prompt_info
+      _left_git_info=''
     fi
   fi
 }
@@ -165,21 +166,22 @@ function prompt_precmd() {
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
 
 # Clear to the end of the line before execution
-function preexec () {
-  OSC133_START="\e]133;A\e\\"
+function _prompt_preexec() {
+  local OSC133_START="\e]133;A\e\\"
   printf "$OSC133_START%s" "$terminfo[el]";
 }
+add-zsh-hook preexec _prompt_preexec
 
-if (( $+commands[tput] ));then
+if (( $+commands[tput] )); then
   bold=$(tput bold)
   italic=$(tput sitm)
   reset=$(tput sgr0)
+  terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 else
   bold=''
   italic=''
   reset=''
 fi
-terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
