@@ -111,61 +111,53 @@ function coalesce {
 }
 
 function get_left_gitprompt_info() {
-    local branch_name="$(command git symbolic-ref -q --short HEAD 2> /dev/null)"
-    local current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
-    local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
+    local branch_name is_worktree branch
+    branch_name="$(command git symbolic-ref -q --short HEAD 2> /dev/null)"
+    local current_commit_hash tag_at_current_commit
+    current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
+    tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
     if [[ -n $tag_at_current_commit ]]; then
         tag_at_current_commit="%{$reset%}%F{97}⸨%b%{$italic%}%F{178}%{$reset%}%B%F{198}:%f%b%F{66}${tag_at_current_commit}%F{97}⸩%f%b"
     fi
     [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
-    [[ -n $branch_name ]] &&
-        branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
-    # print -n "${branch}"
-    print -n "${branch:+""} $(_git-action)"
+    if [[ -n $branch_name ]]; then
+        branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%25>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
+        [[ -n $is_worktree ]] && print -n "${branch:-""} $(_git-action)" || print -n "${branch:+""} $(_git-action)"
+    fi
+    unset is_worktree
 }
 
 function git_info() {
-    local ahead=0 behind=0 untracked=0 modified=0 deleted=0 added=0 dirty=0
-    local branch
-    local pos position commit
-    local ahead_and_behind_cmd ahead_and_behind
-    local -a git_status
-    local is_on_a_tag=false
-    local git_dir=$(git-dir 2>/dev/null)
-    local current_commit_hash="$(git rev-parse HEAD 2> /dev/null)"
-    local branch_name="${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}"
-    #  ±
+    local ahead=0 behind=0 untracked=0 modified=0 deleted=0 added=0 dirty=0 renamed=0 unmerged=0
+    local branch position commit is_worktree
+    local git_dir current_commit_hash branch_name tag_at_current_commit
+    git_dir=$(git-dir 2>/dev/null)
+    current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
+    branch_name="${$(git symbolic-ref HEAD 2>/dev/null)#refs/heads/}"
 
-    # check if the current commit is at a tag point
     local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
     if [[ -n $tag_at_current_commit ]]; then
         tag_at_current_commit="%{$reset%}%F{60}⸨%{$italic%}%F{178}%{$reset%}%F{198}:%f%F{66}${tag_at_current_commit}%F{60}⸩%f"
     fi
 
     [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
-    if [[ -n $branch_name ]] && \
-        branch=("%F{8}🙧 %F{172} %F{9}%B${is_worktree:-""}%f%b%{$italic%}%F{37}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
-    if [[ -z "$branch_name" ]]; then
-        pos="$(git describe --contains --all HEAD 2> /dev/null)"
-        [[ -n $git_dir ]] && position="%F{8}ǁ%F{196} %F{5}%{$italic%}${pos}%{$reset%}%F{8}ǁ%f"
+    if [[ -n $branch_name ]]; then
+        branch=("%F{8}🙧 %F{172} %F{9}%B${is_worktree:-""}%f%b%{$italic%}%F{37}%25>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
+    else
+        position="$(git describe --contains --all HEAD 2> /dev/null)"
+        [[ -n $git_dir ]] && position="%F{8}ǁ%F{196} %F{5}%{$italic%}${position}%{$reset%}%F{8}ǁ%f"
     fi
 
-    [[ -n $git_dir ]] && [[ -z "$branch_name" && -z "$pos" ]] && commit=" %F{8}ǁ%F{196}%F{7}${current_commit_hash}%F{8}ǁ%f"
+    [[ -n $git_dir ]] && [[ -z "$branch_name" && -z "$position" ]] && commit=" %F{8}ǁ%F{196}%F{7}${current_commit_hash}%F{8}ǁ%f"
 
-    ahead_and_behind_cmd='git rev-list --count --left-right HEAD...@{upstream}'
-    # Get ahead and behind counts.
-    ahead_and_behind="$(${(z)ahead_and_behind_cmd} 2> /dev/null)"
+    local ahead_and_behind_cmd='git rev-list --count --left-right HEAD...@{upstream}'
+    local ahead_and_behind="$(${(z)ahead_and_behind_cmd} 2> /dev/null)"
     ahead="$ahead_and_behind[(w)1]"
     behind="$ahead_and_behind[(w)2]"
 
-    # Use porcelain status for easy parsing.
-    status_cmd="git status --porcelain --ignore-submodules=all"
-
-    # Get current status.
+    local status_cmd="git status --porcelain --ignore-submodules=all"
+    local -a git_status
     while IFS=$'\n' read line; do
-        # Count added, deleted, modified, renamed, unmerged, untracked, dirty.
-        # T (type change) is undocumented, see http://git.io/FnpMGw.
-        # For a table of scenario, see http://i.imgur.com/2YLu1.png.
         [[ "$line" == ([ACDMT][\ MT]|[ACMT]D)\ * ]] && (( added++ ))
         [[ "$line" == [\ ACMRT]D\ * ]] && (( deleted++ ))
         [[ "$line" == ?[MT]\ * ]] && (( modified++ ))
@@ -175,14 +167,12 @@ function git_info() {
         (( dirty++ ))
     done < <(${(z)status_cmd} 2> /dev/null)
 
-    if [[ -n $git_dir ]];then
-      (( dirty > 0 )) && git_status+=("%F{9}✘%f") || git_status+=("%F{27}✔%f")
-      (( ahead > 0 && behind > 0 )) && git_status+=("%F{9}󰃻%f")
+    if [[ -n $git_dir ]]; then
+        (( dirty > 0 )) && git_status+=("%F{9}✘%f") || git_status+=("%F{27}✔%f")
+        (( ahead > 0 && behind > 0 )) && git_status+=("%F{9}󰃻%f")
     fi
 
     git_status+=($(_git-action))
-
-    # if [[ -n $branch ]] && git_status+=(${branch})
     git_status+=($(coalesce $branch $position $commit))
 
     local -i stashed=$(command git stash list 2>/dev/null | wc -l)
@@ -196,6 +186,7 @@ function git_info() {
     (( unmerged > 0 )) && git_status+=("%F{7}${unmerged}%B%F{1} %f%b")
     (( untracked > 0 )) && git_status+=("%F{7}${untracked}%F{8}??%f")
 
+    unset is_worktree
     print -n "$git_status "
 }
 

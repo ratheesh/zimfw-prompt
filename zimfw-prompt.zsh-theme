@@ -91,8 +91,10 @@ zstyle ':zim:duration-info' threshold 2.0
 zstyle ':zim:duration-info' format '%F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
 
 autoload -Uz add-zsh-hook
-add-zsh-hook preexec duration-info-preexec
-add-zsh-hook precmd duration-info-precmd
+if (( $+functions[duration-info-preexec] && $+functions[duration-info-precmd] )); then
+  add-zsh-hook preexec duration-info-preexec
+  add-zsh-hook precmd duration-info-precmd
+fi
 
 
 function prompt_git_async_tasks() {
@@ -172,16 +174,16 @@ function _prompt_preexec() {
 }
 add-zsh-hook preexec _prompt_preexec
 
-if (( $+commands[tput] ));then
+if (( $+commands[tput] )); then
   bold=$(tput bold)
   italic=$(tput sitm)
   reset=$(tput sgr0)
+  terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 else
   bold=''
   italic=''
   reset=''
 fi
-terminfo_down_sc=$terminfo[cud1]$terminfo[cuu1]$terminfo[sc]$terminfo[cud1]
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
