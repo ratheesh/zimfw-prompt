@@ -51,16 +51,16 @@ function _left_prompt_info() {
 function _prompt_mode() {
   case ${KEYMAP} in
     vicmd)
-      print -n "%F{8}🙟 %F{95}%BNORMAL%b%F{8}🙝 %f"
+      print -n "%F{8}🙟 %F{95}%B%{$italic%}normal%{$reset%}%b%F{8}🙝 %f"
       ;;
     main|viins)
-      print -n "%F{8}🙟 %F{103}%BINSERT%b%F{8}🙝 %f"
+      print -n "%F{8}🙟 %F{103}%B%{$italic%}insert%{$reset%}%b%F{8}🙝 %f"
       ;;
     vivis)
-      print -n "%F{8}🙟 %F{126}%BVISUAL%b%F{8}🙝 %f"
+      print -n "%F{8}🙟 %F{126}%B%{$italic%}visual%{$reset%}%b%F{8}🙝 %f"
       ;;
     vivli)
-      print -n "%F{8}🙟 %F{126}%BV-LINE%b%F{8}🙝 %f"
+      print -n "%F{8}🙟 %F{126}%B%{$italic%}v-line%{$reset%}%b%F{8}🙝 %f"
       ;;
     *) # print -n "UNKNOWN -> $KEYMAP"
   esac
