@@ -119,10 +119,14 @@ function get_left_gitprompt_info() {
     if [[ -n $tag_at_current_commit ]]; then
         tag_at_current_commit="%{$reset%}%F{97}⸨%b%{$italic%}%F{178}%{$reset%}%B%F{198}:%f%b%F{66}${tag_at_current_commit}%F{97}⸩%f%b"
     fi
+
     [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
-    if [[ -n $branch_name ]]; then
+    if [[ -n $branch_name && ${#branch_name} -lt 25 ]]; then
         branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%25>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
         [[ -n $is_worktree ]] && print -n "${branch:-""} $(_git-action)" || print -n "${branch:+""} $(_git-action)"
+    else
+        branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%75>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
+        print -n "${branch:-""} $(_git-action)"
     fi
     unset is_worktree
 }
