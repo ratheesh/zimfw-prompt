@@ -45,7 +45,7 @@ function _prompt_chars() {
 }
 
 function _left_prompt_info() {
-  print -n "   %(?:%F{27}%f:%F{161}%f) $(_prompt_mode) ${_left_git_info}$(_prompt_dockerinfo)"
+  print -n "   $(_prompt_mode) %(?:%F{27}●%f:%F{161}●%f) ${_left_git_info}$(_prompt_dockerinfo)"
 }
 
 function _prompt_mode() {
@@ -88,7 +88,7 @@ setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
 
 zstyle ':zim:duration-info' threshold 2.0
-zstyle ':zim:duration-info' format '%F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
+zstyle ':zim:duration-info' format '%F{8}⌠%F{126}󱎫 %F{92}%d%F{8}⌡%f'
 
 autoload -Uz add-zsh-hook
 function _prompt_duration_preexec() { (( $+functions[duration-info-preexec] )) && duration-info-preexec "$@" }
@@ -190,8 +190,9 @@ PS1='%{$terminfo_down_sc$(_left_prompt_info)${VIRTUAL_ENV:+"%F{8}(%F{198}󰌠 %{
 %F{247}@%F{131}%m%F{60}⌡%F{162}~%f"}%F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%F{63\}/%{$italic%\}\
 %F{173\}}//\~/⌂}%{$reset%}%F{60}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f '
 
+# 󱞥 󰋖 󱞲
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%F{9}󱞦 %F{8}»%F{1}%?%F{8}« %f)${duration_info}${prompt_info}'
+RPS1='%(?::%B%F{197}󱞱%b %F{93}»%F{245}%?%F{93}« %f)${duration_info}${prompt_info}'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
