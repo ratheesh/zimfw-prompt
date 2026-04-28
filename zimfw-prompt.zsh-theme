@@ -88,7 +88,7 @@ setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
 
 zstyle ':zim:duration-info' threshold 2.0
-zstyle ':zim:duration-info' format '%F{8}⌠%F{126}⏲ %F{92}%d%F{8}⌡%f'
+zstyle ':zim:duration-info' format '%F{8}⌠%F{126}󱎫 %F{92}%d%F{8}⌡%f'
 
 autoload -Uz add-zsh-hook
 if (( $+functions[duration-info-preexec] && $+functions[duration-info-precmd] )); then

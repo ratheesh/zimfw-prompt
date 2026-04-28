@@ -117,7 +117,7 @@ function get_left_gitprompt_info() {
     current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
     tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
     if [[ -n $tag_at_current_commit ]]; then
-        tag_at_current_commit="%{$reset%}%F{97}⸨%b%{$italic%}%F{178}%{$reset%}%B%F{198}:%f%b%F{66}${tag_at_current_commit}%F{97}⸩%f%b"
+        tag_at_current_commit="%{$reset%}%F{97}⸨%b%{$italic%}%F{178}󱈤%{$reset%}%B%F{198}:%f%b%F{66}${tag_at_current_commit}%F{97}⸩%f%b"
     fi
 
     [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
@@ -141,7 +141,7 @@ function git_info() {
 
     local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
     if [[ -n $tag_at_current_commit ]]; then
-        tag_at_current_commit="%{$reset%}%F{60}⸨%{$italic%}%F{178}%{$reset%}%F{198}:%f%F{66}${tag_at_current_commit}%F{60}⸩%f"
+        tag_at_current_commit="%{$reset%}%F{60}⸨%{$italic%}%F{178}󱈤%{$reset%}%F{198}:%f%F{66}${tag_at_current_commit}%F{60}⸩%f"
     fi
 
     [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
@@ -180,7 +180,7 @@ function git_info() {
     git_status+=($(coalesce $branch $position $commit))
 
     local -i stashed=$(command git stash list 2>/dev/null | wc -l)
-    (( stashed > 0 )) && git_status+=("%F{7}${stashed}%F{63}%B%f%b")
+    (( stashed > 0 )) && git_status+=("%F{7}${stashed}%F{63}%B%f%b")
     (( ahead > 0 )) && git_status+=("%F{7}${ahead}%F{34}󰁞%f")
     (( behind > 0 )) && git_status+=("%F{7}${behind}%F{198}󰁆%f")
     (( added > 0 )) && git_status+=("%F{7}${added}%F{2}󱇬%f")
