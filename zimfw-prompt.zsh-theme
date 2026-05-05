@@ -185,7 +185,7 @@ fi
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
-PS1='%{$terminfo_down_sc$(_left_prompt_info)${VIRTUAL_ENV:+"%F{8}(%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{8})%f"} \
+PS1='%{$terminfo_down_sc$(_left_prompt_info)${VIRTUAL_ENV:+"%F{60}⸨%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{60}⸩%f"} \
 %{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
 %F{247}@%F{131}%m%F{60}⌡%F{162}~%f"}%F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%F{63\}/%{$italic%\}\
 %F{173\}}//\~/⌂}%{$reset%}%F{60}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f '
