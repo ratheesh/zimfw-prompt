@@ -20,20 +20,18 @@
 
 # Gets the Git special action (am, bisect, cherry, merge, rebase).
 # Borrowed from vcs_info and edited.
-function _git-action {
-    local git_dir=$(git-dir 2>/dev/null)
-    local action_dir
+_git-action() {
+    local git_dir action_dir
+    git_dir=$(git-dir 2>/dev/null)
     for action_dir in \
         "${git_dir}/rebase-apply" \
             "${git_dir}/rebase" \
             "${git_dir}/../.dotest"
     do
         if [[ -d ${action_dir} ]]; then
-            local apply_formatted
-            local rebase_formatted
+            local apply_formatted rebase_formatted
             apply_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}%F{1}apply%{$reset%}%F{8}🙦 "
             rebase_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}%F{1}>R>rebase%{$reset%}%F{8}🙦 "
-
             if [[ -f "${action_dir}/rebasing" ]]; then
                 print ${rebase_formatted}
             elif [[ -f "${action_dir}/applying" ]]; then
@@ -41,7 +39,6 @@ function _git-action {
             else
                 print "${rebase_formatted}/${apply_formatted}"
             fi
-
             return 0
         fi
     done
@@ -87,7 +84,6 @@ function _git-action {
             cherry_pick_formatted="%F{8}🙤 %F{172} %F{1} %{$italic%}cherry-pick%{$reset%}%F{8}🙦 "
             print ${cherry_pick_formatted}
         fi
-
         return 0
     fi
 
@@ -101,18 +97,17 @@ function _git-action {
     return 1
 }
 
-# Prints the first non-empty string in the arguments array.
-function coalesce {
+coalesce() {
     for arg in $argv; do
         [[ -n "$arg" ]] && print "$arg" && return 0
     done
     return 1
 }
 
-function get_left_gitprompt_info() {
-    local branch_name is_worktree branch
+get_left_gitprompt_info() {
+    local branch_name is_worktree branch git_dir current_commit_hash tag_at_current_commit
+    git_dir=$(git-dir 2>/dev/null)
     branch_name="$(command git symbolic-ref -q --short HEAD 2> /dev/null)"
-    local current_commit_hash tag_at_current_commit
     current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
     tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
     if [[ -n $tag_at_current_commit ]]; then
@@ -127,10 +122,9 @@ function get_left_gitprompt_info() {
         branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%75>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
         print -n "${branch:-""} $(_git-action)"
     fi
-    unset is_worktree
 }
 
-function git_info() {
+git_info() {
     local ahead=0 behind=0 untracked=0 modified=0 deleted=0 added=0 dirty=0 renamed=0 unmerged=0
     local branch position commit is_worktree
     local git_dir current_commit_hash branch_name tag_at_current_commit
@@ -154,7 +148,7 @@ function git_info() {
     [[ -n $git_dir ]] && [[ -z "$branch_name" && -z "$position" ]] && commit=" %F{8}ǁ%F{196}%F{7}${current_commit_hash}%F{8}ǁ%f"
 
     local ahead_and_behind_cmd='git rev-list --count --left-right HEAD...@{upstream}'
-    local ahead_and_behind="$(${(z)ahead_and_behind_cmd} 2> /dev/null)"
+    local ahead_and_behind="$("${(z)ahead_and_behind_cmd}" 2> /dev/null)"
     ahead="$ahead_and_behind[(w)1]"
     behind="$ahead_and_behind[(w)2]"
 
@@ -187,13 +181,12 @@ function git_info() {
     (( modified > 0 )) && git_status+=("%F{7}${modified}%F{202}✱%f")
     (( renamed > 0 )) && git_status+=("%F{7}${renamed}%F{54}󰁕%f")
     (( unmerged > 0 )) && git_status+=("%F{7}${unmerged}%B%F{1} %f%b")
-    (( untracked > 0 )) && git_status+=("%F{7}${untracked}%F{8}󰋖󰋖%f")
+    (( untracked > 0 )) && git_status+=("%F{7}${untracked}%F{8}󰋖%f")
 
-    unset is_worktree
     print -n "$git_status "
 }
 
-function transient_prompt_info() {
+transient_prompt_info() {
     local prompt_info branch pos position commit
     local git_dir=$(git-dir 2>/dev/null)
     local current_commit_hash="$(git rev-parse HEAD 2> /dev/null)"

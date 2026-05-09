@@ -45,7 +45,7 @@ function _prompt_chars() {
 }
 
 function _left_prompt_info() {
-  print -n "   $(_prompt_mode) %(?:%F{27}●%f:%F{161}●%f) ${_left_git_info}$(_prompt_dockerinfo)"
+  print -n "   $(_prompt_mode)%(?:%F{27}•%f:%F{161}•%f) ${_left_git_info}$(_prompt_dockerinfo)"
 }
 
 function _prompt_mode() {
@@ -70,12 +70,8 @@ function _prompt_keymap_select() {
   zle reset-prompt
   zle -R
 }
-if autoload -Uz is-at-least && is-at-least 5.3; then
-  autoload -Uz add-zle-hook-widget && \
-    add-zle-hook-widget -Uz keymap-select _prompt_keymap_select
-else
-  zle -N zle-keymap-select _prompt_keymap_select
-fi
+autoload -Uz add-zle-hook-widget
+add-zle-hook-widget -Uz keymap-select _prompt_keymap_select
 
 function _prompt_dockerinfo() {
   [[ -f /.dockerenv ]] && print -n "%F{11} %f"
