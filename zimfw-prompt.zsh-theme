@@ -192,4 +192,9 @@ RPS1='%(?::%B%F{197}󱞱%b %F{93}»%F{245}%?%F{93}« %f)${duration_info}${prompt
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
+# Not sure if this is the right place to set this?
+if [[ -x "$(command -v tput)" ]]; then
+ export SUDO_PROMPT="$(tput setaf 3) $(tput setaf 6)sudo$(tput setaf 1)$(tput bold):$(tput sgr0)$(tput setaf 242)Password for $(tput setaf 4)󰀄 $(tput setaf 5)$(tput sitm)%u$(tput sgr0)$(tput setaf 2)?$(tput sgr0) "
+fi
+
 # End of File
