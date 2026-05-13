@@ -39,13 +39,13 @@ source ${0:A:h}/functions/git_info
 # ❰ ❱ ❮ ❯
 function _prompt_chars() {
   case ${KEYMAP} in
-    vicmd) print -n '%F{166}❮%F{250}❮%F{28}❮';;
-    *) print -n '%F{28}❯%F{250}❯%F{166}❯';;
+    vicmd) print -n '%F{168}❮%F{251}❮%F{30}❮';;
+    *) print -n '%F{30}❯%F{251}❯%F{168}❯';;
   esac
 }
 
 function _left_prompt_info() {
-  print -n "   $(_prompt_mode)%(?:%F{27}•%f:%F{161}•%f) ${_left_git_info}$(_prompt_dockerinfo)"
+  print -n "   $(_prompt_mode)%(?::%B%F{197}󱞱%f%b) ${_left_git_info}$(_prompt_dockerinfo)"
 }
 
 function _prompt_mode() {
@@ -182,19 +182,19 @@ fi
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
 PS1='%{$terminfo_down_sc$(_left_prompt_info)${VIRTUAL_ENV:+"%F{60}⸨%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{60}⸩%f"} \
-%{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{60}⌠%f%{$italic%}%F{67}%n%{$reset%}\
-%F{247}@%F{131}%m%F{60}⌡%F{162}~%f"}%F{60}⌠%F{102}${${${(%):-%30<...<%2~%<<}//\//%F{63\}/%{$italic%\}\
-%F{173\}}//\~/🏠}%{$reset%}%F{60}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f '
+%{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{102}⌠%f%{$italic%}%F{67}%n%{$reset%}\
+%F{247}@%F{131}%m%F{102}⌡%F{162}~%f"}%F{102}⌠%F{241}${${${(%):-%30<...<%2~%<<}//\//%B%F{69\}/%b%{$italic%\}\
+%F{167\}}//\~/🏠}%{$reset%}%F{102}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f '
 
-# 󱞥 󰋖 󱞲 ⌂
+# 󱞥 󱞲 ⌂ 󰋖 ❓⁇ ？
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{197}󱞱%b %F{93}»%F{245}%?%F{93}« %f)${duration_info}${prompt_info}'
+RPS1='%(?::%B%F{197}󱞲%b %F{93}»%F{245}%?%F{93}« %f)${duration_info}${prompt_info}'
 
 SPROMPT='zsh: Correct %F{2}%R%f to %F{2}%r%f [nyae]? '
 
 # Not sure if this is the right place to set this?
 if [[ -x "$(command -v tput)" ]]; then
- export SUDO_PROMPT="$(tput setaf 3) $(tput setaf 6)sudo$(tput setaf 1)$(tput bold):$(tput sgr0)$(tput setaf 242)Password for $(tput setaf 4)󰀄 $(tput setaf 5)$(tput sitm)%u$(tput sgr0)$(tput setaf 2)?$(tput sgr0) "
+  export SUDO_PROMPT="$(tput setaf 3) $(tput setaf 6)sudo$(tput setaf 1)$(tput bold):$(tput sgr0)$(tput setaf 242)Password for $(tput setaf 4)󰀄 $(tput setaf 5)$(tput sitm)%u$(tput sgr0)$(tput setaf 2)$(tput bold)？$(tput sgr0)"
 fi
 
 # End of File
