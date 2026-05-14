@@ -33,8 +33,39 @@
 
 autoload -Uz async && async
 
+# Add zimfw/git-info functions to fpath and autoload
+fpath=("${ZIM_HOME:-${HOME}/.zim}/modules/git-info/functions" $fpath)
+autoload -Uz git-info git-action coalesce
+
 # Load helper functions (get_left_gitprompt_info, transient_prompt_info, etc.)
 source ${0:A:h}/functions/git_info
+
+# zimfw/git-info configuration
+zstyle ':zim:git-info' verbose yes
+zstyle ':zim:git-info:clean'             format '%F{27}✔ %f'
+zstyle ':zim:git-info:dirty'             format '%F{9}✘ %f'
+zstyle ':zim:git-info:diverged'          format '%B%F{9}󰃻%f%b'
+zstyle ':zim:git-info:stashed'           format '%F{7}%S%F{63}%B %f%b'
+zstyle ':zim:git-info:ahead'             format '%F{7}%A%F{34}󰁞%f'
+zstyle ':zim:git-info:behind'            format '%F{7}%B%F{198}󰁆%f'
+zstyle ':zim:git-info:indexed'           format '%F{7}%i%F{2}󱇬 %f'
+zstyle ':zim:git-info:unindexed'         format '%F{7}%I%F{202}✱ %f'
+zstyle ':zim:git-info:untracked'         format '%F{7}%u%F{8}󰋖%f'
+zstyle ':zim:git-info:action'            format '%F{8}🙤 %F{172} %s%F{8}🙦 '
+zstyle ':zim:git-info:action:rebase-i'   format '%F{27}>%F{162}%BR%b%F{27}>%{$italic%}%F{1}rebase-i%{$reset%}'
+zstyle ':zim:git-info:action:rebase-m'   format '%F{1}%{$italic%}rebase-merge%{$reset%}'
+zstyle ':zim:git-info:action:rebase'     format '%F{1}%{$italic%}>R>rebase%{$reset%}'
+zstyle ':zim:git-info:action:am'         format '%F{1}%{$italic%}apply%{$reset%}'
+zstyle ':zim:git-info:action:am/rebase'  format '%F{1}%{$italic%}apply/rebase%{$reset%}'
+zstyle ':zim:git-info:action:merge'      format '%F{1}%{$italic%}merge%{$reset%}'
+zstyle ':zim:git-info:action:cherry'     format '%F{1}%{$italic%} cherry-pick%{$reset%}'
+zstyle ':zim:git-info:action:cherry-seq' format '%F{1}%{$italic%} cherry-pick-sequence%{$reset%}'
+zstyle ':zim:git-info:action:revert'     format '%F{1}%{$italic%}revert%{$reset%}'
+zstyle ':zim:git-info:action:revert-seq' format '%F{1}%{$italic%}revert-sequence%{$reset%}'
+zstyle ':zim:git-info:action:bisect'     format '%F{1}<B>bisect'
+zstyle ':zim:git-info:keys' format \
+    'pre_branch'  '%C%D%V%s' \
+    'post_branch' '%S%A%B%i%I%u'
 
 # ❰ ❱ ❮ ❯
 function _prompt_chars() {
@@ -110,12 +141,35 @@ function prompt_git_async_tasks() {
 }
 
 function prompt_async_git {
-  emulate -L zsh
-  if (( $+functions[cd] )); then
-    unset -f cd
-  fi
-  builtin cd -q "$1"
-  git_info
+    emulate -L zsh
+    if (( $+functions[cd] )); then
+        unset -f cd
+    fi
+    builtin cd -q "$1"
+
+    git-info || return
+
+    local branch_name="${$(git symbolic-ref HEAD 2>/dev/null)#refs/heads/}"
+    local current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
+    local git_dir=$(git-dir 2>/dev/null)
+
+    local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2>/dev/null)
+    if [[ -n $tag_at_current_commit ]]; then
+        tag_at_current_commit="%{$reset%}%F{60}⸨%{$italic%}%F{1}󱈤 %{$reset%}%f%F{66}${tag_at_current_commit}%F{60}⸩%f"
+    fi
+
+    local is_worktree branch position commit
+    [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
+
+    if [[ -n $branch_name ]]; then
+        branch="%F{8}🙧 %F{172} %F{9}%B${is_worktree}%f%b%{$italic%}%F{37}%25>…>${branch_name}%>>%F{142}${tag_at_current_commit}%{$reset%}%F{8}🙥 %f"
+    else
+        position="$(git describe --contains --all HEAD 2>/dev/null)"
+        [[ -n $git_dir ]] && position="%F{8}ǁ%F{196} %F{5}%{$italic%}${position}%{$reset%}%F{8}ǁ%f"
+        [[ -n $git_dir && -z $branch_name && -z $position ]] && commit=" %F{8}ǁ%F{196}%F{7}${current_commit_hash}%F{8}ǁ%f"
+    fi
+
+    print -n "${git_info[pre_branch]}$(coalesce $branch $position $commit)${git_info[post_branch]} "
 }
 
 # Called when new data is ready to be read from the pipe
