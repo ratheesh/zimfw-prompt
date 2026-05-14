@@ -1,107 +1,27 @@
-# Copyright (c) 2023 Ratheesh <ratheeshreddy@gmail.com>
-# Author: Ratheesh S
+# Copyright (c) 2026 Ratheesh <ratheeshreddy@gmail.com>
+# Author: Ratheesh
+# License SPDX-License-Identifier: MIT
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy of
-# this software and associated documentation files (the "Software"), to deal in
-# the Software without restriction, including without limitation the rights to
-# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-# the Software, and to permit persons to whom the Software is furnished to do so,
-# subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# Based on git-info plugin from zimfw
 
-# Gets the Git special action (am, bisect, cherry, merge, rebase).
-# Borrowed from vcs_info and edited.
-_git-action() {
-    local git_dir action_dir
-    git_dir=$(git-dir 2>/dev/null)
-    for action_dir in \
-        "${git_dir}/rebase-apply" \
-            "${git_dir}/rebase" \
-            "${git_dir}/../.dotest"
-    do
-        if [[ -d ${action_dir} ]]; then
-            local apply_formatted rebase_formatted
-            apply_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}%F{1}apply%{$reset%}%F{8}🙦 "
-            rebase_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}%F{1}>R>rebase%{$reset%}%F{8}🙦 "
-            if [[ -f "${action_dir}/rebasing" ]]; then
-                print ${rebase_formatted}
-            elif [[ -f "${action_dir}/applying" ]]; then
-                print ${apply_formatted}
-            else
-                print "${rebase_formatted}/${apply_formatted}"
-            fi
-            return 0
-        fi
-    done
-
-    for action_dir in \
-        "${git_dir}/rebase-merge/interactive" \
-            "${git_dir}/.dotest-merge/interactive"
-    do
-        if [[ -f ${action_dir} ]]; then
-            local rebase_interactive_formatted
-            rebase_interactive_formatted="%F{8}🙤 %F{172} %F{27}>%F{162}%BR%b%F{27}>%{$italic%}%F{1}rebase-i%{$reset%}%F{8}🙦 "
-            print "${rebase_interactive_formatted}"
-            return 0
-        fi
-    done
-
-    for action_dir in \
-        "${git_dir}/rebase-merge" \
-            "${git_dir}/.dotest-merge"
-    do
-        if [[ -d ${action_dir} ]]; then
-            local rebase_merge_formatted
-            rebase_merge_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}rebase-merge%{$reset%}%F{8}🙦 "
-            print ${rebase_merge_formatted}
-            return 0
-        fi
-    done
-
-    if [[ -f "${git_dir}/MERGE_HEAD" ]]; then
-        local merge_formatted
-        merge_formatted="%F{8}🙤 %F{172} %F{1}%{$italic%}merge%{$reset%}%F{8}🙦 "
-        print ${merge_formatted}
-        return 0
-    fi
-
-    if [[ -f "${git_dir}/CHERRY_PICK_HEAD" ]]; then
-        if [[ -d "${git_dir}/sequencer" ]]; then
-            local cherry_pick_sequence_formatted
-            cherry_pick_sequence_formatted="%F{8}🙤 %F{172} %F{1} %{$italic%}cherry-pick-sequence%{$reset%}%F{8}🙦 "
-            print ${cherry_pick_sequence_formatted}
-        else
-            local cherry_pick_formatted
-            cherry_pick_formatted="%F{8}🙤 %F{172} %F{1} %{$italic%}cherry-pick%{$reset%}%F{8}🙦 "
-            print ${cherry_pick_formatted}
-        fi
-        return 0
-    fi
-
-    if [[ -f "${git_dir}/BISECT_LOG" ]]; then
-        local bisect_formatted
-        bisect_formatted="%F{8}🙤 %F{172} %F{1}<B>bisect%F{8}🙦 "
-        print ${bisect_formatted}
-        return 0
-    fi
-
-    return 1
-}
-
-coalesce() {
-    for arg in $argv; do
-        [[ -n "$arg" ]] && print "$arg" && return 0
-    done
-    return 1
+# Format a git action name (from zimfw/git-info's git-action) into a prompt string.
+_fmt_git_action() {
+    local action
+    action=$(git-action 2>/dev/null) || return
+    local s="%F{8}🙤 %F{172} " e="%F{8}🙦 "
+    case $action in
+        rebase-i)   print "${s}%F{27}>%F{162}%BR%b%F{27}>%{$italic%}%F{1}rebase-i%{$reset%}${e}" ;;
+        rebase-m)   print "${s}%F{1}%{$italic%}rebase-merge%{$reset%}${e}" ;;
+        rebase)     print "${s}%F{1}%{$italic%}>R>rebase%{$reset%}${e}" ;;
+        am)         print "${s}%F{1}%{$italic%}apply%{$reset%}${e}" ;;
+        am/rebase)  print "${s}%F{1}%{$italic%}apply/rebase%{$reset%}${e}" ;;
+        merge)      print "${s}%F{1}%{$italic%}merge%{$reset%}${e}" ;;
+        cherry)     print "${s}%F{1} %{$italic%}cherry-pick%{$reset%}${e}" ;;
+        cherry-seq) print "${s}%F{1} %{$italic%}cherry-pick-sequence%{$reset%}${e}" ;;
+        revert)     print "${s}%F{1}%{$italic%}revert%{$reset%}${e}" ;;
+        revert-seq) print "${s}%F{1}%{$italic%}revert-sequence%{$reset%}${e}" ;;
+        bisect)     print "${s}%F{1}<B>bisect${e}" ;;
+    esac
 }
 
 get_left_gitprompt_info() {
@@ -114,76 +34,14 @@ get_left_gitprompt_info() {
         tag_at_current_commit="%{$reset%}%F{97}⸨%b%{$italic%}%F{1}󱈤 %{$reset%}%f%b%F{66}${tag_at_current_commit}%F{97}⸩%f%b"
     fi
 
-    [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
+    [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
     if [[ -n $branch_name && ${#branch_name} -lt 25 ]]; then
-        branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%25>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
-        [[ -n $is_worktree ]] && print -n "${branch:-""} $(_git-action)" || print -n "${branch:+""} $(_git-action)"
+        branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%25>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
+        [[ -n $is_worktree ]] && print -n "${branch:-""} $(_fmt_git_action)" || print -n "${branch:+""} $(_fmt_git_action)"
     else
-        branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%75>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
-        print -n "${branch:-""} $(_git-action)"
+        branch=("%F{8}🙧 %F{172} %f${is_worktree:-""}%{$italic%}%F{37}%75>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
+        print -n "${branch:-""} $(_fmt_git_action)"
     fi
-}
-
-git_info() {
-    local ahead=0 behind=0 untracked=0 modified=0 deleted=0 added=0 dirty=0 renamed=0 unmerged=0
-    local branch position commit is_worktree
-    local git_dir current_commit_hash branch_name tag_at_current_commit
-    git_dir=$(git-dir 2>/dev/null)
-    current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
-    branch_name="${$(git symbolic-ref HEAD 2>/dev/null)#refs/heads/}"
-
-    local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
-    if [[ -n $tag_at_current_commit ]]; then
-        tag_at_current_commit="%{$reset%}%F{60}⸨%{$italic%}%F{1}󱈤 %{$reset%}%f%F{66}${tag_at_current_commit}%F{60}⸩%f"
-    fi
-
-    [[ -n $branch_name ]] && [[ -f "$PWD/$(git rev-parse --show-cdup)/.git" ]] && is_worktree="%F{198} %f"
-    if [[ -n $branch_name ]]; then
-        branch=("%F{8}🙧 %F{172} %F{9}%B${is_worktree:-""}%f%b%{$italic%}%F{37}%25>…>${branch_name}%>>%F{142}${tag_at_current_commit:-""}%{$reset%}%F{8}🙥 %f")
-    else
-        position="$(git describe --contains --all HEAD 2> /dev/null)"
-        [[ -n $git_dir ]] && position="%F{8}ǁ%F{196} %F{5}%{$italic%}${position}%{$reset%}%F{8}ǁ%f"
-    fi
-
-    [[ -n $git_dir ]] && [[ -z "$branch_name" && -z "$position" ]] && commit=" %F{8}ǁ%F{196}%F{7}${current_commit_hash}%F{8}ǁ%f"
-
-    local ahead_and_behind_cmd='git rev-list --count --left-right HEAD...@{upstream}'
-    local ahead_and_behind="$("${(z)ahead_and_behind_cmd}" 2> /dev/null)"
-    ahead="$ahead_and_behind[(w)1]"
-    behind="$ahead_and_behind[(w)2]"
-
-    local status_cmd="git status --porcelain --ignore-submodules=all"
-    local -a git_status
-    while IFS=$'\n' read -r line; do
-        [[ "$line" == ([ACDMT][\ MT]|[ACMT]D)\ * ]] && (( added++ ))
-        [[ "$line" == [\ ACMRT]D\ * ]] && (( deleted++ ))
-        [[ "$line" == ?[MT]\ * ]] && (( modified++ ))
-        [[ "$line" == R?\ * ]] && (( renamed++ ))
-        [[ "$line" == (AA|DD|U?|?U)\ * ]] && (( unmerged++ ))
-        [[ "$line" == \?\?\ * ]] && (( untracked++ ))
-        (( dirty++ ))
-    done < <(${(z)status_cmd} 2> /dev/null)
-
-    if [[ -n $git_dir ]]; then
-        (( dirty > 0 )) && git_status+=("%F{9}✘%f") || git_status+=("%F{27}✔%f")
-        (( ahead > 0 && behind > 0 )) && git_status+=("%B%F{9}󰃻%f%b")
-    fi
-
-    git_status+=($(_git-action))
-    git_status+=($(coalesce $branch $position $commit))
-
-    local -i stashed=$(command git stash list 2>/dev/null | wc -l)
-    (( stashed > 0 )) && git_status+=("%F{7}${stashed}%F{63}%B%f%b")
-    (( ahead > 0 )) && git_status+=("%F{7}${ahead}%F{34}󰁞%f")
-    (( behind > 0 )) && git_status+=("%F{7}${behind}%F{198}󰁆%f")
-    (( added > 0 )) && git_status+=("%F{7}${added}%F{2}󱇬%f")
-    (( deleted > 0 )) && git_status+=("%F{7}${deleted}%B%F{1} %f%b")
-    (( modified > 0 )) && git_status+=("%F{7}${modified}%F{202}✱%f")
-    (( renamed > 0 )) && git_status+=("%F{7}${renamed}%F{54}󰁕%f")
-    (( unmerged > 0 )) && git_status+=("%F{7}${unmerged}%B%F{1} %f%b")
-    (( untracked > 0 )) && git_status+=("%F{7}${untracked}%F{8}󰋖%f")
-
-    print -n "$git_status "
 }
 
 transient_prompt_info() {
@@ -192,23 +50,22 @@ transient_prompt_info() {
     local current_commit_hash="$(git rev-parse HEAD 2> /dev/null)"
     local branch_name="${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}"
 
-    # check if the current commit is at a tag point
     local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
     if [[ -n $tag_at_current_commit ]]; then
         tag_at_current_commit="%{$reset%}%F{60}⸨%b%{$italic%}%F{1}󱈤 %{$reset%}%f%b%F{66}${tag_at_current_commit}%F{60}⸩%f%b"
     fi
 
     if [[ -n $branch_name ]];then
-     branch=("%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b")
+     branch=("%B%F{105}«%B%F{172} %f%b%{$italic%}%F{243}%25>…>${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}%>>%F{142}%b${tag_at_current_commit:-""}%{$reset%}%B%F{105}»%f%b")
     fi
 
     if [[ -z "$branch_name" ]]; then
         pos="$(git describe --contains --all HEAD 2> /dev/null)"
-        [[ -n $git_dir ]] && position="%B%F{8}ǁ%b%F{196} %F{5}%{$italic%}${pos}%{$reset%}%B%F{8}ǁ%f%b"
-        [[ -n $git_dir ]] && [[ -z "$branch_name" && -z "$pos" ]] && commit=" %B%F{8}ǁ%F{196}%F{7}${current_commit_hash}%B%F{8}ǁ%f%b"
+        [[ -n $git_dir ]] && position="%B%F{8}ǁ%b%F{196} %F{5}%{$italic%}${pos}%{$reset%}%B%F{8}ǁ%f%b"
+        [[ -n $git_dir ]] && [[ -z "$branch_name" && -z "$pos" ]] && commit=" %B%F{8}ǁ%F{196}%F{7}${current_commit_hash}%B%F{8}ǁ%f%b"
     fi
 
-    prompt_info="%B%F{129}󰓦%f%b%B%F{105}"
+    prompt_info="%B%F{129}󰓦 %f%b%B%F{105}"
     prompt_info+=($(coalesce $branch $position $commit))
 
     print -n "$prompt_info"
