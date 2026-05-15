@@ -323,7 +323,7 @@ SPROMPT='$(tput sitm)%F{5}zsh$(tput sgr0)%F{1}:%F{242} Correct %F{1}%R%f to %F{2
 
 # Not sure if this is the right place to set this?
 if [[ -x "$(command -v tput)" ]]; then
-  export SUDO_PROMPT="$(tput setaf 3) $(tput setaf 6)sudo$(tput setaf 1)$(tput bold):$(tput sgr0)$(tput setaf 242)Password for $(tput setaf 4)󰀄 $(tput setaf 5)$(tput sitm)%u$(tput sgr0)$(tput setaf 2)$(tput bold)？$(tput sgr0)"
+  export SUDO_PROMPT="$(tput setaf 3) $(tput setaf 160)$(tput sitm)$(tput bold)sudo$(tput sgr0)$(tput setaf 3):$(tput sgr0)$(tput setaf 242)Password$(tput setaf 93)($(tput setaf 3)󱕵$(tput setaf 93))$(tput setaf 242) for $(tput setaf 4)󰀄 $(tput setaf 5)%u$(tput sgr0)$(tput setaf 2)$(tput bold)？$(tput sgr0)"
 fi
 
 # End of File
