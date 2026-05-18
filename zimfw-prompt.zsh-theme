@@ -72,7 +72,7 @@ function get_left_gitprompt_info() {
     local branch_name is_worktree branch git_dir current_commit_hash tag_at_current_commit
     git_dir=$(git-dir 2>/dev/null)
     branch_name="$(command git symbolic-ref -q --short HEAD 2> /dev/null)"
-    current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
+    current_commit_hash="$(git rev-parse --short HEAD 2>/dev/null)"
     tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
     if [[ -n $tag_at_current_commit ]]; then
         tag_at_current_commit="%{$reset%}%F{97}⸨%b%{$italic%}%F{1}󱈤 %{$reset%}%f%b%F{66}${tag_at_current_commit}%F{97}⸩%f%b"
@@ -94,7 +94,7 @@ function get_left_gitprompt_info() {
 function transient_prompt_info() {
     local prompt_info branch pos position commit
     local git_dir=$(git-dir 2>/dev/null)
-    local current_commit_hash="$(git rev-parse HEAD 2> /dev/null)"
+    local current_commit_hash="$(git rev-parse --short HEAD 2> /dev/null)"
     local branch_name="${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}"
 
     local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
@@ -144,7 +144,7 @@ zstyle ':zim:git-info:action:rebase-m'   format "%{$italic%}%F{1}rebase-merge%{$
 zstyle ':zim:git-info:action:rebase'     format "%F{27}%B>%b%F{162}R%F{27}%B>%b%{$italic%}%F{1}rebase%{$reset%}%f"
 zstyle ':zim:git-info:action:am'         format "%{$italic%}%F{1}apply%{$reset%}%f"
 zstyle ':zim:git-info:action:am/rebase'  format "%{$italic%}%F{1}apply%F{27}%B/%b%F{1}rebase%{$reset%}%f"
-zstyle ':zim:git-info:action:merge'      format "%{$italic%}%F{1}merge%{$reset%}%f"
+zstyle ':zim:git-info:action:merge'      format "%F{27}%B>%b%F{162}󰽜 %F{27}%B<%b%f%{$italic%}%F{1}merge%{$reset%}%f"
 zstyle ':zim:git-info:action:cherry'     format "%{$italic%}%F{1}cherry-pick%{$reset%}%f"
 zstyle ':zim:git-info:action:cherry-seq' format "%{$italic%}%F{1}cherry-pick-sequence%{$reset%}%f"
 zstyle ':zim:git-info:action:revert'     format "%{$italic%}%F{1}revert%{$reset%}%f"
@@ -237,7 +237,7 @@ function prompt_async_git {
     git-info || return
 
     local branch_name="${$(git symbolic-ref HEAD 2>/dev/null)#refs/heads/}"
-    local current_commit_hash="$(git rev-parse HEAD 2>/dev/null)"
+    local current_commit_hash="$(git rev-parse --short HEAD 2>/dev/null)"
     local git_dir=$(git-dir 2>/dev/null)
 
     local tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2>/dev/null)
