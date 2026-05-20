@@ -205,6 +205,14 @@ zstyle ':zim:duration-info' threshold 2.0
 zstyle ':zim:duration-info' format '%F{102}⌠%F{4}󱎫 %F{7}%d%F{102}⌡%f'
 
 autoload -Uz add-zsh-hook
+
+# OSC 133 shell integration — must register first to capture $? before other precmd functions run
+function _prompt_osc133_precmd() {
+  printf '\e]133;D;%s\e\\' "$?"
+  printf '\e]133;A\e\\'
+}
+add-zsh-hook precmd _prompt_osc133_precmd
+
 function _prompt_duration_preexec() { (( $+functions[duration-info-preexec] )) && duration-info-preexec "$@" }
 function _prompt_duration_precmd() { (( $+functions[duration-info-precmd] )) && duration-info-precmd }
 add-zsh-hook preexec _prompt_duration_preexec
@@ -301,19 +309,22 @@ function prompt_precmd() {
 
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
 
-# Clear to the end of the line before execution
+# Clear to end of line and mark command execution start
 function _prompt_preexec() {
-  local OSC133_START="\e]133;A\e\\"
-  printf "$OSC133_START%s" "$terminfo[el]";
+  printf '\e]133;C\e\\'
+  printf '%s' "$terminfo[el]"
 }
 add-zsh-hook preexec _prompt_preexec
+
+# OSC 133;B — marks end of prompt / start of user input (zero-width in PS1)
+typeset -g _p133b=$'\e]133;B\e\\'
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
 PS1='%{$terminfo_down_sc$(_left_prompt_info)${VIRTUAL_ENV:+"%F{60}⸨%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{60}⸩%f"} \
 %{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{102}⌠%f%{$italic%}%F{67}%n%{$reset%}\
 %F{247}@%F{131}%m%F{102}⌡%F{162}~%f"}%F{102}⌠%F{241}${${${(%):-%30<…<%2~%<<}//\//%B%F{31\}/%b%{$italic%\}\
-%F{168\}}//\~/🏠}%{$reset%}%F{102}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f '
+%F{168\}}//\~/🏠}%{$reset%}%F{102}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
 
 # 󱞥 󱞲 ⌂ 󰋖 ❓⁇ ？
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
