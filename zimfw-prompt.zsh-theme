@@ -206,9 +206,26 @@ zstyle ':zim:duration-info' format '%F{102}⌠%F{4}󱎫 %F{7}%d%F{102}⌡%f'
 
 autoload -Uz add-zsh-hook
 
-# OSC 133 shell integration — must register first to capture $? before other precmd functions run
+# OSC 133 shell integration — must register first to capture $? before other precmd functions run.
+# Also handles selective history: replays command to history only if exit code != 127.
+typeset -g _last_hist_entry=''
+
+function zshaddhistory() {
+  emulate -L zsh
+  _last_hist_entry="${1%$'\n'}"
+  return 1  # block auto-add; _prompt_osc133_precmd decides based on exit code
+}
+
 function _prompt_osc133_precmd() {
-  printf '\e]133;D;%s\e\\' "$?"
+  local exit_code=$?
+
+  if [[ -n $_last_hist_entry && $exit_code != 127 ]]; then
+    print -sr -- "$_last_hist_entry"
+    fc -AI  # flush new entry to HISTFILE (INC_APPEND_HISTORY compatibility)
+  fi
+  _last_hist_entry=''
+
+  printf '\e]133;D;%s\e\\' "$exit_code"
   printf '\e]133;A\e\\'
 }
 add-zsh-hook precmd _prompt_osc133_precmd
