@@ -191,6 +191,32 @@ function _prompt_keymap_select() {
 autoload -Uz add-zle-hook-widget
 add-zle-hook-widget -Uz keymap-select _prompt_keymap_select
 
+# Override the built-in clear-screen widget so Ctrl-L keeps the prompt at the bottom
+function _zimfw_clear_screen() {
+  emulate -L zsh
+  if (( ${ZIMFW_PROMPT_BOTTOM:-0} )); then
+    if (( $+commands[tput] )); then
+      # Treat Ctrl-L as an explicit clear: don't insert blank lines, clear screen and place prompt
+      local _lines gap target_row
+      _lines=$(tput lines)
+      gap=${ZIMFW_PROMPT_BOTTOM_GAP:-3}
+      tput clear
+      target_row=$((_lines - gap - 1))
+      (( target_row < 0 )) && target_row=0
+      (( _lines > 0 )) && printf '%s' "$(tput cup ${target_row} 0)$(tput el)"
+    else
+      command clear
+    fi
+    # Refresh the prompt in ZLE; if not in ZLE, precmd will handle positioning
+    zle reset-prompt 2>/dev/null || true
+    zle -R 2>/dev/null || true
+  else
+    # call the original widget
+    zle .clear-screen
+  fi
+}
+zle -N clear-screen _zimfw_clear_screen
+
 function _prompt_dockerinfo() {
   [[ -f /.dockerenv ]] && print -n "%F{11} %f"
 }
@@ -200,6 +226,11 @@ typeset -g _left_git_info=''
 
 setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
+
+# Display prompt at bottom of screen by default. To disable, set ZIMFW_PROMPT_BOTTOM=0
+: ${ZIMFW_PROMPT_BOTTOM:=1}
+: ${ZIMFW_PROMPT_BOTTOM_GAP:=3}
+
 
 zstyle ':zim:duration-info' threshold 2.0
 zstyle ':zim:duration-info' format '%F{102}⌠%F{4}󱎫 %F{7}%d%F{102}⌡%f'
@@ -310,8 +341,41 @@ function prompt_precmd() {
   emulate -L zsh
   setopt noxtrace noksharrays localoptions
 
+  if (( ${ZIMFW_PROMPT_BOTTOM:-0} )); then
+    if (( $+commands[tput] )); then
+      local _lines gap target_row pos cur_row cur_row0 need_newlines i
+      _lines=$(tput lines)
+      gap=${ZIMFW_PROMPT_BOTTOM_GAP:-3}
+      target_row=$((_lines - gap - 1))
+      (( target_row < 0 )) && target_row=0
+
+      # Query cursor row using Device Status Report (DSR) so we only insert
+      # the minimal number of newlines necessary to make room for the gap.
+      if [[ -e /dev/tty ]]; then
+        printf '\e[6n' > /dev/tty
+        if read -sdR -t 0.05 pos < /dev/tty 2>/dev/null; then
+          pos=${pos#*\[}
+          cur_row=${pos%%;*}
+          cur_row0=$((cur_row - 1))
+          if (( cur_row0 > target_row )); then
+            need_newlines=$((cur_row0 - target_row))
+            i=0
+            while (( i < need_newlines )); do
+              printf '%s' "$(tput cup $((_lines - 1)) 0)"
+              printf '\n'
+              i=$((i + 1))
+            done
+          fi
+        fi
+      fi
+
+      # Move cursor to target row and clear the line where prompt will be drawn
+      printf '%s' "$(tput cup ${target_row} 0)$(tput el)"
+    fi
+  fi
+
   if (( $+functions[git-dir] )); then
-    local new_git_root="$(git-dir 2> /dev/null)"
+    local new_git_root="$(git-dir 2>/dev/null)"
     if [[ -n $new_git_root ]];then
       [[ $new_git_root != $_cur_git_root ]] && _cur_git_root=$new_git_root
       _left_git_info=$(get_left_gitprompt_info)
@@ -325,6 +389,29 @@ function prompt_precmd() {
 }
 
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
+
+# Override the external 'clear' command so typing "clear" keeps the prompt at the bottom.
+function clear() {
+  if (( ${ZIMFW_PROMPT_BOTTOM:-0} )); then
+    if (( $+commands[tput] )); then
+      # Explicit clear: don't insert blank lines to avoid growing the viewport
+      local _lines gap target_row
+      _lines=$(tput lines)
+      gap=${ZIMFW_PROMPT_BOTTOM_GAP:-3}
+      tput clear
+      target_row=$((_lines - gap - 1))
+      (( target_row < 0 )) && target_row=0
+      (( _lines > 0 )) && printf '%s' "$(tput cup ${target_row} 0)$(tput el)"
+    else
+      command clear
+    fi
+    # If running inside ZLE, refresh prompt now; otherwise precmd will reposition on next prompt.
+    zle reset-prompt 2>/dev/null || true
+    zle -R 2>/dev/null || true
+  else
+    command clear
+  fi
+}
 
 # Clear to end of line and mark command execution start
 function _prompt_preexec() {
