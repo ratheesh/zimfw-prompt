@@ -114,9 +114,14 @@ function _prompt_chars() {
   esac
 }
 
+function _virtualenv_info() {
+  emulate -L zsh
+  print -n "${VIRTUAL_ENV:+" %F{60}⸨%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{60}⸩%f"}"
+}
+
 function _left_prompt_info() {
   emulate -L zsh
-  print -n "   $(_prompt_mode)%(?::%B%F{197}󱞱%f%b) ${_left_git_info}$(_prompt_dockerinfo)"
+  print -n "   $(_prompt_mode)$(_virtualenv_info)${_left_git_info}$(_prompt_dockerinfo)%(?::%B%F{197} 󱞱%f%b)"
 }
 
 function _prompt_mode() {
@@ -147,7 +152,7 @@ add-zle-hook-widget -Uz keymap-select _prompt_keymap_select
 
 function _prompt_dockerinfo() {
   emulate -L zsh
-  [[ -f /.dockerenv ]] && print -n "%F{11} %f"
+  [[ -f /.dockerenv ]] && print -n " %F{11} %f"
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
@@ -157,7 +162,7 @@ setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
 
 zstyle ':zim:duration-info' threshold 2.0
-zstyle ':zim:duration-info' format '%F{102}⌠%F{4}󱎫 %F{7}%d%F{102}⌡%f'
+zstyle ':zim:duration-info' format '%F{8}⌠%F{4}󱎫 %F{7}%d%F{8}⌡%f'
 
 autoload -Uz add-zsh-hook
 
@@ -258,7 +263,7 @@ function prompt_async_git {
         position="$(git describe --contains --all HEAD 2>/dev/null)"
         current_commit_hash="$(git rev-parse --short HEAD 2>/dev/null)"
         if [[ -n $git_dir && -n $position ]]; then
-            position="%F{8}ǁ%F{196} %F{5}%{$italic%}%25<…<${position}%<<%{$ritm%}%F{8}ǁ%f"
+            position="%F{8}ǁ%F{196} %F{5}%{$italic%}%25<…<${position}%<<%{$ritm%}%F{8}ǁ%f"
         elif [[ -n $git_dir ]]; then
             commit=" %F{8}ǁ%F{196}%F{7}%25<…<${current_commit_hash}%<<%F{8}ǁ%f"
         fi
@@ -335,14 +340,14 @@ typeset -g _p133b=$'\e]133;B\e\\'
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
-PS1='%{$terminfo_down_sc$(_left_prompt_info)${VIRTUAL_ENV:+"%F{60}⸨%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{60}⸩%f"} \
-%{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{102}⌠%f%{$italic%}%F{67}%n%{$reset%}\
-%F{247}@%F{131}%m%F{102}⌡%F{162}~%f"}%F{102}⌠%F{241}${${${(%):-%30<…<%2~%<<}//\//%B%F{31\}/%b%{$italic%\}\
-%F{168\}}//\~/🏠}%{$reset%}%F{102}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
+PS1='%{$terminfo_down_sc$(_left_prompt_info) \
+%{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{8}⌠%f%{$italic%}%F{67}%n%{$reset%}\
+%F{247}@%F{131}%m%F{8}⌡%F{162}~%f"}%F{8}⌠%F{60}${${${(%):-%30<…<%2~%<<}//\//%B%F{31\}/%b%{$italic%\}\
+%F{168\}}//\~/🏠}%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
 
-# 󱞥 󱞲 ⌂ 󰋖 ❓⁇ ？
+# 󱞥 󱞲 󱞱 ⌂ 󰋖 ❓⁇ ？
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{197}󱞲%b %F{93}»%F{245}%?%F{93}« %f)${duration_info}${prompt_info}'
+RPS1='%(?::%B%F{197}󱞱%b %F{93}»%F{245}%?%F{93}« %f)${duration_info}${prompt_info}'
 
 SPROMPT='$(tput sitm)%F{5}zsh$(tput sgr0)%F{1}:%F{242} Correct %F{1}%R%f to %F{22}%r%f [nyae]？'
 
