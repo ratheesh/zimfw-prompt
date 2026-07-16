@@ -296,14 +296,14 @@ typeset -g _p133b=$'\e]133;B\e\\'
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
-PS1='%{$terminfo_down_sc$(_left_prompt_info) \
+PROMPT='%{$terminfo_down_sc$(_left_prompt_info) \
 %{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{8}⌠%f%{$italic%}%F{67}%n%{$reset%}\
 %F{247}@%F{131}%m%F{8}⌡%F{162}~%f"}%F{8}⌠%F{60}${${${(%):-%30<…<%2~%<<}//\//%B%F{31\}/%b%{$italic%\}\
 %F{168\}}//\~/🏠}%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
 
 # 󱞥 󱞲 󱞱 ⌂ 󰋖 ❓⁇ ？
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
-RPS1='%(?::%B%F{197}󱞱%b %F{93}»%F{245}%?%F{93}« %f)${duration_info}${prompt_info}'
+RPROMPT='%(?::%B%F{197}󱞱%b %F{93}»%F{245}%?%F{93}« %f)${duration_info}${prompt_info}'
 
 SPROMPT='$(tput sitm)%F{5}zsh$(tput sgr0)%F{1}:%F{242} Correct %F{1}%R%f to %F{22}%r%f [nyae]？'
 
