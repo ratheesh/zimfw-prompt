@@ -298,7 +298,7 @@ typeset -g _p133b=$'\e]133;B\e\\'
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
 PROMPT='%{$terminfo_down_sc$(_left_prompt_info) \
 %{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{8}⌠%f%{$italic%}%F{67}%n%{$reset%}\
-%F{247}@%F{131}%m%F{8}⌡%F{162}~%f"}%F{8}⌠%F{60}${${${(%):-%30<…<%2~%<<}//\//%B%F{31\}/%b%{$italic%\}\
+%F{247}@%F{5}%m%F{8}⌡%F{162}~%f"}%F{8}⌠%F{60}${${${(%):-%30<…<%2~%<<}//\//%B%F{31\}/%b%{$italic%\}\
 %F{168\}}//\~/🏠}%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
 
 # 󱞥 󱞲 󱞱 ⌂ 󰋖 ❓⁇ ？
