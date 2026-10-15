@@ -156,7 +156,7 @@ function _prompt_dockerinfo() {
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
-typeset -g _left_git_info='' prompt_info='' _cur_git_root=''
+typeset -g _left_git_info='' prompt_info='' _cur_git_root='' prompt_git_async_init=0
 
 setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
@@ -181,8 +181,8 @@ add-zsh-hook precmd _prompt_duration_precmd
 function prompt_git_async_tasks() {
   emulate -L zsh
 
-  if (( !${prompt_git_async_init:-0} )); then
-    async_start_worker prompt_git -n
+  if (( !prompt_git_async_init )); then
+    async_start_worker prompt_git -n || return
     async_register_callback prompt_git prompt_git_async_callback
     typeset -g prompt_git_async_init=1
   fi
@@ -195,9 +195,11 @@ function prompt_git_async_tasks() {
 }
 
 # Runs in the async worker. Produces BOTH prompt fragments in a single pass so
-# the synchronous prompt never forks git, and emits them as "<left>\x1e<right>".
+# the synchronous prompt never forks git, and emits them as "<pwd>\x1f<left>\x1e<right>"
+# (the leading pwd lets the callback discard results for a stale working directory).
 function prompt_async_git {
     emulate -L zsh
+    local req_pwd="$1"
     # builtin cd already ignores any user cd function, so no unset needed.
     builtin cd -q "$1" 2>/dev/null || return
 
@@ -236,7 +238,7 @@ function prompt_async_git {
 
     # RS (0x1e) never appears in prompt content and survives the async layer's
     # (q)-quoting intact, so it is a safe field separator.
-    print -rn -- "${left}"$'\x1e'"${right}"
+    print -rn -- "${req_pwd}"$'\x1f'"${left}"$'\x1e'"${right}"
 }
 
 # Called when new data is ready to be read from the pipe.
@@ -246,16 +248,19 @@ function prompt_git_async_callback() {
 
   case $1 in
     prompt_async_git)
-      _left_git_info="${3%%$'\x1e'*}"
-      prompt_info="${3#*$'\x1e'}"
-      zle reset-prompt
-      zle -R
+      # Ignore failed jobs and results computed for a directory that is no longer current.
+      [[ $2 -eq 0 && ${3%%$'\x1f'*} == "$PWD" ]] || return
+      local body=${3#*$'\x1f'}
+      _left_git_info="${body%%$'\x1e'*}"
+      prompt_info="${body#*$'\x1e'}"
+      zle && zle reset-prompt
       ;;
 
     "[async]")
       # Code is 1 for corrupted worker output and 2 for dead worker.
       if [[ $2 -eq 2 ]]; then
-        # Our worker died unexpectedly.
+        # Our worker died unexpectedly; clean it up so it is restarted.
+        async_stop_worker prompt_git 2>/dev/null
         typeset -g prompt_git_async_init=0
       fi
       ;;
@@ -279,6 +284,8 @@ function prompt_precmd() {
     prompt_git_async_tasks
   else
     _cur_git_root='' _left_git_info='' prompt_info=''
+    # Drop any in-flight job from the repo we just left.
+    (( prompt_git_async_init )) && async_flush_jobs prompt_git
   fi
 }
 
