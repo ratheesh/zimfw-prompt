@@ -167,7 +167,13 @@ zstyle ':zim:duration-info' format '%F{8}⌠%F{4}󱎫 %F{7}%d%F{8}⌡%f'
 autoload -Uz add-zsh-hook
 
 # OSC 133 shell integration
+typeset -g _p133_started=0
+
 function _prompt_osc133_precmd() {
+  local ret=$?
+  # Close the previous command (skipped for the very first prompt)
+  (( _p133_started )) && printf '\e]133;D;%s\e\\' $ret
+  _p133_started=1
   printf '\e]133;A\e\\'
 }
 add-zsh-hook precmd _prompt_osc133_precmd
