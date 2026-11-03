@@ -105,6 +105,18 @@ zstyle ':zim:git-info:keys' format \
     'pre_branch'  '%C%D%V%s' \
     'post_branch' '%S%A%B%i%I%u'
 
+# Construct path fragment for $prompt
+function _prompt_pwd() {
+  local p=${(%):-%30<<%2~%<<} sep='%B%F{168}/%b' head last
+  p=${p//\~/🏠}
+  if [[ $p == */* ]];then
+    head=${p%/*} last=${p##*/}
+    print --rn -- "%F{60}${head//\//${sep}%F{60\}}${sep}%F{31}%{$italic%}${last}%{$ritm%}"
+  else
+    print --rn -- "%F{60}%{$italics%}${p}%{$ritm%}"
+  fi
+}
+
 # ❰ ❱ ❮ ❯
 function _prompt_chars() {
   emulate -L zsh
@@ -222,7 +234,7 @@ function prompt_async_git {
     # --- right prompt: full git status ---
     rtag="$(_fmt_tag 60)"
     if [[ -n $branch_name ]]; then
-        branch="%F{8}🙧 %F{172} %B${is_worktree}%f%b%{$italic%}%F{37}%25<…<${branch_name}%<<%F{142}${rtag}%{$reset%}%F{8}🙥 %f"
+        branch="%F{8}🙧 %F{172} %B${is_worktree}%f%b%{$italic%}%F{37}%25< <${branch_name}%<<%F{142}${rtag}%{$reset%}%F{8}🙥 %f"
     else
         position="$(git describe --contains --all HEAD 2>/dev/null)"
         current_commit_hash="$(git rev-parse --short HEAD 2>/dev/null)"
@@ -238,7 +250,7 @@ function prompt_async_git {
     # any in-progress action. Short branches live in the right prompt only. ---
     if [[ -n $branch_name ]] && { (( ${#branch_name} >= 25 )) || [[ -n $is_worktree ]]; }; then
         ltag="$(_fmt_tag 97)"
-        lbranch="%F{8}🙧 %F{172} %f${is_worktree}%{$italic%}%F{37}%50<…<${branch_name}%<<%F{142}${ltag}%{$reset%}%F{8}🙥 %f"
+        lbranch="%F{8}🙧 %F{172} %f${is_worktree}%{$italic%}%F{37}%50< <${branch_name}%<<%F{142}${ltag}%{$reset%}%F{8}🙥 %f"
     fi
     local left="${lbranch}$(_fmt_git_action)"
 
@@ -311,8 +323,7 @@ typeset -g _p133b=$'\e]133;B\e\\'
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
 PROMPT='%{$terminfo_down_sc$(_left_prompt_info) \
 %{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{8}⌠%f%{$italic%}%F{108}%n%{$reset%}\
-%B%F{248}@%b%F{168}%m%F{8}⌡%B%F{180}~%f%b"}%F{8}⌠%F{60}${${${(%):-%30<…<%2~%<<}//\//%B%F{168\}/%b%{$italic%\}\
-%F{31\}}//\~/🏠}%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
+%B%F{248}@%b%F{168}%m%F{8}⌡%B%F{180}~%f%b"}%F{8}⌠%F{60}$(_prompt_pwd)%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
 
 # 󱞥 󱞲 󱞱 󱞦 ⌂ 󰋖 ❓⁇ ？
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
