@@ -107,11 +107,19 @@ zstyle ':zim:git-info:keys' format \
 
 # Construct path fragment for $prompt
 function _prompt_pwd() {
-  local p=${(%):-%30<<%2~%<<} sep='%B%F{168}/%b' head last
+  emulate -L zsh
+  local p=${(%):-%30<<%2~%<<} sep='%B%F{243}/%b' head last
   p=${p//\~/🏠}
   if [[ $p == */* ]];then
     head=${p%/*} last=${p##*/}
-    print --rn -- "%F{60}${head//\//${sep}%F{60\}}${sep}%F{31}%{$italic%}${last}%{$ritm%}"
+    local rootsep='%B%F{9}/%b' lead=''
+    if [[ $p == /* ]]; then
+      lead=$rootsep head=${head#/}
+      [[ -n $head  ]] && head="${head//\//${sep}%F{60\}}${sep}" || head=''
+      print --rn -- "${lead}%F{60}${head}%F{31}%{$italic%}${last}%{$ritm%}"
+    else
+      print --rn -- "%F{60}${head//\//${sep}%F{60\}}${sep}%F{31}%{$italic%}${last}%{$ritm%}"
+    fi
   else
     print --rn -- "%F{60}%{$italics%}${p}%{$ritm%}"
   fi
@@ -323,7 +331,7 @@ typeset -g _p133b=$'\e]133;B\e\\'
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
 PROMPT='%{$terminfo_down_sc$(_left_prompt_info) \
 %{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{8}⌠%f%{$italic%}%F{108}%n%{$reset%}\
-%B%F{248}@%b%F{168}%m%F{8}⌡%B%F{180}~%f%b"}%F{8}⌠%F{60}$(_prompt_pwd)%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
+%B%F{67}@%b%F{168}%m%F{8}⌡%B%F{180}~%f%b"}%F{8}⌠%F{60}$(_prompt_pwd)%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
 
 # 󱞥 󱞲 󱞱 󱞦 ⌂ 󰋖 ❓⁇ ？
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
