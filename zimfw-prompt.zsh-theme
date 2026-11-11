@@ -108,7 +108,7 @@ zstyle ':zim:git-info:keys' format \
 # Construct path fragment for $prompt
 function _prompt_pwd() {
   emulate -L zsh
-  local p=${(%):-%30<<%2~%<<} sep='%B%F{243}/%b' head last
+  local p=${(%):-%30<…<%2~%<<} sep='%B%F{243}/%b' head last
   p=${p//\~/🏠}
   if [[ $p == */* ]];then
     head=${p%/*} last=${p##*/}
@@ -242,7 +242,7 @@ function prompt_async_git {
     # --- right prompt: full git status ---
     rtag="$(_fmt_tag 60)"
     if [[ -n $branch_name ]]; then
-        branch="%F{8}🙧 %F{172} %B${is_worktree}%f%b%{$italic%}%F{37}%25< <${branch_name}%<<%F{142}${rtag}%{$reset%}%F{8}🙥 %f"
+        branch="%B%F{105}«%b%F{172} %B${is_worktree}%f%b%{$italic%}%F{37}%25<…<${branch_name}%<<%F{142}${rtag}%{$reset%}%B%F{105}» %f%b"
     else
         position="$(git describe --contains --all HEAD 2>/dev/null)"
         current_commit_hash="$(git rev-parse --short HEAD 2>/dev/null)"
@@ -258,7 +258,7 @@ function prompt_async_git {
     # any in-progress action. Short branches live in the right prompt only. ---
     if [[ -n $branch_name ]] && { (( ${#branch_name} >= 25 )) || [[ -n $is_worktree ]]; }; then
         ltag="$(_fmt_tag 97)"
-        lbranch="%F{8}🙧 %F{172} %f${is_worktree}%{$italic%}%F{37}%50< <${branch_name}%<<%F{142}${ltag}%{$reset%}%F{8}🙥 %f"
+        lbranch=" %B%F{105}«%b%F{172} %f${is_worktree}%{$italic%}%F{37}%50<…<${branch_name}%<<%F{142}${ltag}%{$reset%}%B%F{105}» %f%b"
     fi
     local left="${lbranch}$(_fmt_git_action)"
 
