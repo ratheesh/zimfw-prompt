@@ -67,17 +67,6 @@ function _fmt_git_action() {
     esac
 }
 
-# Render the tag pointing at HEAD (if any) as a prompt fragment.
-# $1 = bracket color (defaults to 60). Always invoked from the async worker,
-# so its git fork stays off the synchronous prompt path.
-function _fmt_tag() {
-    emulate -L zsh
-    local tag bracket=${1:-60}
-    tag=$(git describe --exact-match --tags HEAD 2>/dev/null) || return
-    [[ -n $tag ]] || return
-    print -rn -- "%{$reset%}%F{${bracket}}⸨%{$italic%}%F{1}󱈤 %{$ritm%}%f%F{66}${tag}%F{${bracket}}⸩%f"
-}
-
 # zimfw/git-info configuration
 zstyle ':zim:git-info' verbose yes
 zstyle ':zim:git-info:clean'             format '%F{27}✔ %f'
@@ -116,12 +105,12 @@ function _prompt_pwd() {
     if [[ $p == /* ]]; then
       lead=$rootsep head=${head#/}
       [[ -n $head  ]] && head="${head//\//${sep}%F{60\}}${sep}" || head=''
-      print --rn -- "${lead}%F{60}${head}%F{31}%{$italic%}${last}%{$ritm%}"
+      _prompt_pwd_info="${lead}%F{60}${head}%F{31}%{$italic%}${last}%{$ritm%}"
     else
-      print --rn -- "%F{60}${head//\//${sep}%F{60\}}${sep}%F{31}%{$italic%}${last}%{$ritm%}"
+      _prompt_pwd_info="%F{60}${head//\//${sep}%F{60\}}${sep}%F{31}%{$italic%}${last}%{$ritm%}"
     fi
   else
-    print --rn -- "%F{60}%{$italics%}${p}%{$ritm%}"
+    _prompt_pwd_info="%F{60}%{$italic%}${p}%{$ritm%}"
   fi
 }
 
@@ -129,54 +118,74 @@ function _prompt_pwd() {
 function _prompt_chars() {
   emulate -L zsh
   case ${KEYMAP} in
-    vicmd) print -n '%B%F{167}❮%F{250}❮%F{29}❮%b';;
-    *) print -n '%B%F{29}❯%F{250}❯%F{167}❯%b';;
+    vicmd) _prompt_chars_info='%B%F{167}❮%F{250}❮%F{29}❮%b';;
+    *) _prompt_chars_info='%B%F{29}❯%F{250}❯%F{167}❯%b';;
   esac
 }
 
 function _virtualenv_info() {
   emulate -L zsh
-  print -n "${VIRTUAL_ENV:+" %F{60}⸨%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{60}⸩%f"}"
-}
-
-function _left_prompt_info() {
-  emulate -L zsh
-  print -n "   $(_prompt_mode)$(_virtualenv_info)${_left_git_info}$(_prompt_dockerinfo)%(?::%B%F{197} 󱞦%f%b)"
+  _prompt_virtualenv_info="${VIRTUAL_ENV:+" %F{60}⸨%F{198}󰌠 %{$italic%}%F{179}${VIRTUAL_ENV:t}%f%{$reset%}%F{60}⸩%f"}"
 }
 
 function _prompt_mode() {
   emulate -L zsh
-  case ${KEYMAP} in
+  local keymap=${KEYMAP:-main}
+  if [[ $keymap == vicmd  ]]; then
+    case $REGION_ACTIVE in
+      1) keymap=vivis ;;
+      2) keymap=vivli ;;
+    esac
+  fi
+  case $keymap in
     vicmd)
-      print -n "%F{8}🙟 %F{95}%B%{$italic%}normal%{$ritm%}%b%F{8}🙝 %f"
+      _prompt_mode_info="    %F{8}🙟 %F{95}%B%{$italic%}normal%{$ritm%}%b%F{8}🙝 %f"
       ;;
     main|viins)
-      print -n "%F{8}🙟 %F{103}%B%{$italic%}insert%{$ritm%}%b%F{8}🙝 %f"
+      _prompt_mode_info="    %F{8}🙟 %F{103}%B%{$italic%}insert%{$ritm%}%b%F{8}🙝 %f"
       ;;
     vivis)
-      print -n "%F{8}🙟 %F{126}%B%{$italic%}visual%{$ritm%}%b%F{8}🙝 %f"
+      _prompt_mode_info="    %F{8}🙟 %F{126}%B%{$italic%}visual%{$ritm%}%b%F{8}🙝 %f"
       ;;
     vivli)
-      print -n "%F{8}🙟 %F{126}%B%{$italic%}v-line%{$ritm%}%b%F{8}🙝 %f"
+      _prompt_mode_info="    %F{8}🙟 %F{126}%B%{$italic%}v-line%{$ritm%}%b%F{8}🙝 %f"
       ;;
-    *) # print -n "UNKNOWN -> $KEYMAP"
+    *)
+      _prompt_mode_info=''
   esac
 }
 
-function _prompt_keymap_select() {
-  zle reset-prompt
-  zle -R
+function _prompt_zle_update_mode() {
+  local previous_mode=$_prompt_mode_info previous_chars=$_prompt_chars_info
+  _prompt_mode
+  _prompt_chars
+  if [[ $_prompt_mode_info != $previous_mode || $_prompt_chars_info != $previous_chars ]]; then
+    zle reset-prompt
+  fi
+  return 0
 }
 autoload -Uz add-zle-hook-widget
-add-zle-hook-widget -Uz keymap-select _prompt_keymap_select
+add-zle-hook-widget line-init _prompt_zle_update_mode
+add-zle-hook-widget line-pre-redraw _prompt_zle_update_mode
 
 function _prompt_dockerinfo() {
   emulate -L zsh
-  [[ -f /.dockerenv ]] && print -n " %F{11} %f"
+  [[ -f /.dockerenv ]] && _prompt_docker_info=" %F{11} %f" || _prompt_docker_info=''
+}
+
+function _prompt_update_segments() {
+  emulate -L zsh
+  _prompt_pwd
+  _prompt_mode
+  _prompt_chars
+  _virtualenv_info
+  _prompt_dockerinfo
 }
 
 typeset -g VIRTUAL_ENV_DISABLE_PROMPT=1
 typeset -g _left_git_info='' prompt_info='' _cur_git_root='' prompt_git_async_init=0
+typeset -g _prompt_pwd_info='' _prompt_mode_info='' _prompt_chars_info=''
+typeset -g _prompt_virtualenv_info='' _prompt_docker_info=''
 
 setopt nopromptbang prompt{cr,percent,sp,subst}
 setopt transientrprompt
@@ -225,30 +234,35 @@ function prompt_git_async_tasks() {
 # (the leading pwd lets the callback discard results for a stale working directory).
 function prompt_async_git {
     emulate -L zsh
-    local req_pwd="$1"
+    local req_pwd="$1" git_dir="$2"
     # builtin cd already ignores any user cd function, so no unset needed.
     builtin cd -q "$1" 2>/dev/null || return
 
     git-info || return
 
     local branch_name="${$(git symbolic-ref HEAD 2>/dev/null)#refs/heads/}"
-    local git_dir current_commit_hash position commit
-    local rtag ltag is_worktree branch lbranch
+    local current_commit_hash position commit
+    local tag rtag ltag is_worktree branch lbranch
     git_dir=$(git-dir 2>/dev/null)
 
     # A linked worktree's git dir lives under .../worktrees/<name>.
     [[ -n $branch_name && $git_dir == */worktrees/* ]] && is_worktree="%F{5} %f"
 
     # --- right prompt: full git status ---
-    rtag="$(_fmt_tag 60)"
+    tag=$(git describe --tags --exact-match --tags HEAD 2>/dev/null)
+    if [[ -n $tag ]]; then
+      rtag="%{$reset%}%F{60}⸨%{$italic%}%F{1}󱈤 %{$ritm%}%f%F{66}${tag}%F{60}⸩%f"
+      ltag="%{$reset%}%F{97}⸨%{$italic%}%F{1}󱈤 %{$ritm%}%f%F{66}${tag}%F{97}⸩%f"
+    fi
+
     if [[ -n $branch_name ]]; then
         branch="%B%F{105}«%b%F{172} %B${is_worktree}%f%b%{$italic%}%F{37}%25<…<${branch_name}%<<%F{142}${rtag}%{$reset%}%B%F{105}» %f%b"
     else
         position="$(git describe --contains --all HEAD 2>/dev/null)"
-        current_commit_hash="$(git rev-parse --short HEAD 2>/dev/null)"
         if [[ -n $git_dir && -n $position ]]; then
             position="%F{8}ǁ%F{196} %F{5}%{$italic%}%25<…<${position}%<<%{$ritm%}%F{8}ǁ%f"
         elif [[ -n $git_dir ]]; then
+            current_commit_hash="$(git rev-parse --short HEAD 2>/dev/null)"
             commit=" %F{8}ǁ%F{196}%F{7}%25<…<${current_commit_hash}%<<%F{8}ǁ%f"
         fi
     fi
@@ -257,7 +271,6 @@ function prompt_async_git {
     # --- left prompt: only show the branch for long names (or worktrees), plus
     # any in-progress action. Short branches live in the right prompt only. ---
     if [[ -n $branch_name ]] && { (( ${#branch_name} >= 25 )) || [[ -n $is_worktree ]]; }; then
-        ltag="$(_fmt_tag 97)"
         lbranch=" %B%F{105}«%b%F{172} %f${is_worktree}%{$italic%}%F{37}%50<…<${branch_name}%<<%F{142}${ltag}%{$reset%}%B%F{105}» %f%b"
     fi
     local left="${lbranch}$(_fmt_git_action)"
@@ -307,7 +320,7 @@ function prompt_precmd() {
       _cur_git_root=$new_git_root
       _left_git_info='' prompt_info=''
     fi
-    prompt_git_async_tasks
+    prompt_git_async_tasks "$new_git_root"
   else
     _cur_git_root='' _left_git_info='' prompt_info=''
     # Drop any in-flight job from the repo we just left.
@@ -316,6 +329,7 @@ function prompt_precmd() {
 }
 
 autoload -Uz add-zsh-hook && add-zsh-hook precmd prompt_precmd
+add-zsh-hook precmd _prompt_update_segments
 
 # Clear to end of line and mark command execution start
 function _prompt_preexec() {
@@ -329,9 +343,10 @@ typeset -g _p133b=$'\e]133;B\e\\'
 
 # Define prompts.
 # PS1='${SSH_TTY:+"%F{9}%n%F{7}@%F{3}%m "}%F{60}⌠%f%F{4}%2~%F{60}⌡%f%(!. %F{1}#.)$(_prompt_ratheeshvimode)%f '
-PROMPT='%{$terminfo_down_sc$(_left_prompt_info) \
+PROMPT='%{$terminfo_down_sc${_prompt_mode_info}${_prompt_virtualenv_info}${_left_git_info}${_prompt_docker_info} \
+%(?::%B%F{197}󱞦%b %F{93}%f)\
 %{$reset%}$reset$terminfo[rc]%}${SSH_TTY:+"%F{8}⌠%f%{$italic%}%F{108}%n%{$reset%}\
-%B%F{67}@%b%F{168}%m%F{8}⌡%B%F{180}~%f%b"}%F{8}⌠%F{60}$(_prompt_pwd)%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)$(_prompt_chars)%f %{${_p133b}%}'
+%B%F{67}@%b%F{168}%m%F{8}⌡%B%F{180}~%f%b"}%F{8}⌠%F{60}${_prompt_pwd_info}%{$reset%}%F{8}⌡%f%(!. %F{1}#%f.)%(1j.%F{8}-%B%F{172}%j%b%F{8}-%f.)${_prompt_chars_info}%f %{${_p133b}%}'
 
 # 󱞥 󱞲 󱞱 󱞦 ⌂ 󰋖 ❓⁇ ？
 # RPS1='${VIRTUAL_ENV:+"%F{3}(${VIRTUAL_ENV:t})"}${VIM:+" %F{6}V"}%(?:: %F{1}✘ %?)'
