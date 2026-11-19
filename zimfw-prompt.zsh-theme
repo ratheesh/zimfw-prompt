@@ -159,7 +159,8 @@ function _prompt_zle_update_mode() {
   local previous_mode=$_prompt_mode_info previous_chars=$_prompt_chars_info
   _prompt_mode
   _prompt_chars
-  if [[ $_prompt_mode_info != $previous_mode || $_prompt_chars_info != $previous_chars ]]; then
+  if [[ $_prompt_mode_info != $previous_mode || $_prompt_chars_info != $previous_chars ||
+    $LASTWIDGET == (kill-whole-line|backward-kill-line) ]]; then
     zle reset-prompt
   fi
   return 0
